@@ -1,6 +1,10 @@
 # Yggdrasil Server
 A ktor-based minecraft yggdrasil account server
 
+# 目录结构
+
+TODO
+
 # 技术栈
 
 TODO
@@ -19,7 +23,7 @@ TODO
 
 ```bash
 git clone https://github.com/lgou2w/yggdrasil-server.git
-cd ldk
+cd yggdrasil-server
 mvn clean package
 ```
 
