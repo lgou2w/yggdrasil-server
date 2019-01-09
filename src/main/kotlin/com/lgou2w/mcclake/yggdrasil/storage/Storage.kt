@@ -30,11 +30,11 @@ abstract class Storage {
     abstract val type: String
 
     open fun initialize(conf: YggdrasilConf) {
-        YggdrasilLog.info("Initialize data storage...")
+        YggdrasilLog.info(Storages.M_INITIALIZE)
     }
 
     open fun shutdown() {
-        YggdrasilLog.info("Close data storage...")
+        YggdrasilLog.info(Storages.M_CLOSE)
     }
 
     abstract fun initializeDao(block: Runnable)
@@ -47,6 +47,9 @@ abstract class Storage {
 }
 
 object Storages {
+
+    const val M_INITIALIZE = "初始化数据存储器..."
+    const val M_CLOSE = "关闭数据存储器..."
 
     const val STORAGE_SQLITE = "SQLite"
     const val STORAGE_MYSQL = "MySQL"

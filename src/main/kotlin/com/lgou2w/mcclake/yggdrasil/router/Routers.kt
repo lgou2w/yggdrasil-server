@@ -77,6 +77,8 @@ interface RouterHandler {
 
 object Routers {
 
+    const val M_INSTALL = "安装路由处理器 : {} = {}"
+
     val yggdrasil : RegisteredRouterTree = routerTree("/",
             routerNode(Index),
             routerTree("/authserver",
@@ -108,7 +110,7 @@ object Routers {
         tree.nodes.forEach { node ->
             when (node) {
                 is RegisteredRouterNode -> {
-                    YggdrasilLog.info("Install router handler : ${node.handler.method} = ${node.path}")
+                    YggdrasilLog.info(M_INSTALL, node.handler.method, node.path)
                     node.handler.install(routing)
                 }
                 is RegisteredRouterTree -> install(routing, node)

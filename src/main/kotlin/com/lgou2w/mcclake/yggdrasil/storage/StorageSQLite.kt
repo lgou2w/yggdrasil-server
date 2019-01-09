@@ -32,6 +32,10 @@ import java.sql.Connection
 
 class StorageSQLite : Storage() {
 
+    companion object {
+        const val M_USE_TYPE = "使用 SQLite 数据库文件 : {}"
+    }
+
     private var dProvider : SingleThreadDispatcherProvider? = null
     private var coroutineFactory : CoroutineFactory? = null
     private var cf : SQLiteConnectionFactory? = null
@@ -41,7 +45,7 @@ class StorageSQLite : Storage() {
     override fun initialize(conf: YggdrasilConf) {
         super.initialize(conf)
         val database = conf.config.getString("${YggdrasilConf.ROOT}.storage.sqlite.database")
-        YggdrasilLog.info("Use the SQLite database file : $database")
+        YggdrasilLog.info(M_USE_TYPE, database)
         dProvider = SingleThreadDispatcherProvider("storage")
         cf = SQLiteConnectionFactory(Paths.get(database))
         cf?.initialize()

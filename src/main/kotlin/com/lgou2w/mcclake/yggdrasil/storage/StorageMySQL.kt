@@ -32,6 +32,7 @@ import java.util.*
 class StorageMySQL : Storage() {
 
     companion object {
+        const val M_USE_THREADS = "使用协同程序中的最大线程数 : {}"
 
         val knownConfigurationKeys: List<String> = Collections.unmodifiableList(arrayListOf(
                 "threads", "poolName", "address", "username", "password", "maxPoolSize",
@@ -47,7 +48,7 @@ class StorageMySQL : Storage() {
 
     override fun initialize(conf: YggdrasilConf) {
         val threads = conf.config.getInt("${YggdrasilConf.ROOT}.storage.mysql.threads")
-        YggdrasilLog.info("Use the maximum number of threads in the coroutine : $threads")
+        YggdrasilLog.info(M_USE_THREADS, threads)
         val configuration = buildConfiguration {
             poolName = conf.getStringOrNull("${YggdrasilConf.ROOT}.storage.mysql.poolName")
             address = conf.config.getString("${YggdrasilConf.ROOT}.storage.mysql.address")

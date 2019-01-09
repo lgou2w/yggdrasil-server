@@ -64,12 +64,12 @@ private fun ApplicationEngineEnvironmentBuilder.yggdrasilEnv(conf: YggdrasilConf
         managerImpl = YggdrasilManager(conf)
         managerImpl.initialize()
     } catch (e: Exception) {
-        YggdrasilLog.error("Error when initializing yggdrasil manager:", e)
+        YggdrasilLog.error("初始化 Yggdrasil 管理器时错误:", e)
         exitProcess(1)
     }
     module { yggdrasilApp(managerImpl) }
     conf.connectors.forEach { entry ->
-        YggdrasilLog.info("Configuration connector : host = ${entry.first}, port = ${entry.second}")
+        YggdrasilLog.info("配置连接器 : 主机 = {}, 端口 = {}", entry.first, entry.second)
         connector {
             host = entry.first
             port = entry.second
@@ -78,11 +78,11 @@ private fun ApplicationEngineEnvironmentBuilder.yggdrasilEnv(conf: YggdrasilConf
 }
 
 private fun NettyApplicationEngine.Configuration.yggdrasilNetty(conf: YggdrasilConf) {
-    YggdrasilLog.info("Configuration environment : ")
-    YggdrasilLog.info("= requestQueueLimit : ${conf.requestQueueLimit}")
-    YggdrasilLog.info("= runningLimit : ${conf.runningLimit}")
-    YggdrasilLog.info("= shareWorkGroup : ${conf.shareWorkGroup}")
-    YggdrasilLog.info("= responseWriteTimeoutSeconds : ${conf.responseWriteTimeoutSeconds}")
+    YggdrasilLog.info("配置 Netty 环境 : ")
+    YggdrasilLog.info("= 请求队列限制 : ${conf.requestQueueLimit}")
+    YggdrasilLog.info("= 并发运行限制 : ${conf.runningLimit}")
+    YggdrasilLog.info("= 是否分享工作组 : ${conf.shareWorkGroup}")
+    YggdrasilLog.info("= 响应写入超时秒数 : ${conf.responseWriteTimeoutSeconds}")
     requestQueueLimit = conf.requestQueueLimit
     runningLimit = conf.runningLimit
     shareWorkGroup = conf.shareWorkGroup
@@ -90,17 +90,17 @@ private fun NettyApplicationEngine.Configuration.yggdrasilNetty(conf: YggdrasilC
 }
 
 private fun NettyApplicationEngine.waitStop(input: String) {
-    YggdrasilLog.info("Type \"$input\" to close the application...")
+    YggdrasilLog.info("键入 \"$input\" 以关闭应用程序...")
     runBlocking {
         val scanner = Scanner(System.`in`)
         while (scanner.next().equals(input, true))
             break
     }
-    YggdrasilLog.info("Stopping...")
+    YggdrasilLog.info("关闭中...")
     try {
         managerImpl.close()
     } catch (e: Exception) {
-        YggdrasilLog.error("Error when closing manager:", e)
+        YggdrasilLog.error("关闭管理器时错误:", e)
     } finally {
         stop(1L, 5L, TimeUnit.SECONDS)
     }

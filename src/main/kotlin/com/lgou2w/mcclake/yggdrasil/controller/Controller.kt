@@ -30,6 +30,9 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
         const val INVALID_NON_UNSINGED_UUID = "非无符号 UUID 格式."
         const val INVALID_EMAIL_FORMAT = "无效的邮箱格式."
         const val INVALID_PASSWORD_FORMAT = "无效的密码格式."
+        const val INVALID_PASSWORD_FORMAT_RULE = "无效的密码格式. 规则: "
+        const val INVALID_PASSWORD_FORMAT_RULE2 = "无效的密码格式. 无效强度. 规则: "
+        const val INVALID_NICKNAME_FORMAT_RULE = "无效昵称格式. 规则: "
     }
 
     @Throws(ForbiddenOperationException::class)
@@ -56,11 +59,9 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
         if (password == null)
             throw ForbiddenOperationException(INVALID_PASSWORD_FORMAT)
         if (!conf.userRegistrationPasswordVerify.matcher(password).matches())
-            throw ForbiddenOperationException(
-                    INVALID_PASSWORD_FORMAT + " 允许规则: ${conf.userRegistrationPasswordVerify.pattern()}")
+            throw ForbiddenOperationException(INVALID_PASSWORD_FORMAT_RULE + conf.userRegistrationPasswordVerify.pattern())
         if (!conf.userRegistrationPasswordStrengthVerify.matcher(password).matches())
-            throw ForbiddenOperationException(
-                    INVALID_PASSWORD_FORMAT + " 无效强度. 允许规则: ${conf.userRegistrationPasswordStrengthVerify.pattern()}")
+            throw ForbiddenOperationException(INVALID_PASSWORD_FORMAT_RULE2 + conf.userRegistrationPasswordStrengthVerify.pattern())
         return email0 to password
     }
 
@@ -68,7 +69,7 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
     fun checkIsValidNickname(nickname: String?): String? {
         if (nickname == null) return null
         if (!conf.userRegistrationNicknameVerify.matcher(nickname).matches())
-            throw ForbiddenOperationException("无效昵称格式. 允许规则: ${conf.userRegistrationNicknameVerify.pattern()}")
+            throw ForbiddenOperationException(INVALID_NICKNAME_FORMAT_RULE + conf.userRegistrationNicknameVerify.pattern())
         return nickname
     }
 }

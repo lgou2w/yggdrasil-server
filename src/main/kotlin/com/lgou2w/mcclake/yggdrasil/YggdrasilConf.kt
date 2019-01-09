@@ -62,7 +62,7 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
     private fun getPattern(path: String): Pattern = try {
         Pattern.compile(config.getString(path))
     } catch (e: PatternSyntaxException) {
-        YggdrasilLog.error("Regular expression syntax format in path: $path", e)
+        YggdrasilLog.error("路径中的正则表达式语法格式: $path", e)
         exitProcess(1)
     }
 
@@ -108,22 +108,22 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
                 val currentVersion = configCurrent?.getVersion("$ROOT.version")
                 val resourceVersion = resourceConfig.getVersion("$ROOT.version")
                 if (!configFile.exists()) {
-                    YggdrasilLog.info("Detected that the configuration file does not exist yet...")
-                    YggdrasilLog.info("System exit, please complete the configuration and start the application again...")
+                    YggdrasilLog.info("检测到配置文件尚不存在...")
+                    YggdrasilLog.info("系统退出, 请完成配置并再次启动应用程序...")
                     writConfiguration(classLoader, configFile)
                     exitProcess(0)
                 }
                 if (currentVersion != null && !currentVersion.isOrLater(resourceVersion)) {
-                    YggdrasilLog.info("Old configuration version detected needs to be updated...")
-                    YggdrasilLog.info("Copy old configuration file to $NAME_OLD")
+                    YggdrasilLog.info("检测到的旧配置版本需要更新...")
+                    YggdrasilLog.info("将旧配置文件复制到 $NAME_OLD")
                     Files.copy(configFile.toPath(), Paths.get(configFile.parent, NAME_OLD))
                     writConfiguration(classLoader, configFile)
                 }
                 resourceReader.close()
-                YggdrasilLog.info("Configuration version : ${resourceVersion.version}")
+                YggdrasilLog.info("配置文件版本 : ${resourceVersion.version}")
                 return YggdrasilConf(resourceConfig, resourceVersion)
             } catch (e: Exception) {
-                YggdrasilLog.error("Error loading configuration file:", e)
+                YggdrasilLog.error("加载配置文件时错误:", e)
                 exitProcess(1)
             }
         }

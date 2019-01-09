@@ -40,6 +40,9 @@ import kotlin.system.exitProcess
 
 object Dao {
 
+    const val M_INITIALIZE = "初始化已注册 DAO 模型..."
+    const val M_INITIALIZE_ERROR = "初始化 DAO 模型时错误:"
+
     val registers : Map<KClass<out Entity<*>>, Table> = Collections.unmodifiableMap(mapOf(
             User::class to Users,
             Player::class to Players,
@@ -48,11 +51,11 @@ object Dao {
     ))
 
     fun initializeRegisters() {
-        YggdrasilLog.info("Initialized registered DAO models...")
+        YggdrasilLog.info(M_INITIALIZE)
         try {
             SchemaUtils.createMissingTablesAndColumns(*registers.values.toTypedArray())
         } catch (e: Exception) {
-            YggdrasilLog.error("Error when initializing DAO models:", e)
+            YggdrasilLog.error(M_INITIALIZE_ERROR, e)
             exitProcess(1)
         }
     }

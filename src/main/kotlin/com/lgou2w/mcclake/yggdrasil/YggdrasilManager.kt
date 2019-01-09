@@ -49,28 +49,28 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
     fun initialize() {
         if (!initialized.compareAndSet(false, true))
             return
-        YggdrasilLog.info("Initialize yggdrasil manager...")
+        YggdrasilLog.info("初始化 Yggdrasil 管理器...")
         val storageType = conf.storageType
         val passwordEncryption = conf.passwordEncryption
         mPasswordEncryption = Passwords.newEncryption(passwordEncryption)
         mStorage = Storages.newStorage(storageType)
         mStorage?.initialize(conf)
         mStorage?.initializeDao { Dao.initializeRegisters() }
-        YggdrasilLog.info("Use data storage type : $storageType")
-        YggdrasilLog.info("Use password encryption type : $passwordEncryption")
+        YggdrasilLog.info("使用数据存储类型 : $storageType")
+        YggdrasilLog.info("使用密码加密类型 : $passwordEncryption")
         checkAndLogUnsafePasswordEncryption()
     }
 
     override fun close() {
         if (!initialized.compareAndSet(true, false))
             return
-        YggdrasilLog.info("Close yggdrasil manager...")
+        YggdrasilLog.info("关闭 Yggdrasil 管理器...")
         mPasswordEncryption = null
         mStorage?.shutdown()
         mStorage = null
     }
 
-    private fun <T> T?.notNullField(): T = notNull("Manager has not been initialized.")
+    private fun <T> T?.notNullField(): T = notNull("管理器尚未初始化.")
 
     val storage : Storage get() = mStorage.notNullField()
     val passwordEncryption : PasswordEncryption get() = mPasswordEncryption.notNullField()
@@ -78,8 +78,8 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
     private fun checkAndLogUnsafePasswordEncryption() {
         val clazz = mPasswordEncryption?.javaClass
         if (clazz?.getAnnotation(Deprecated::class.java) != null) {
-            YggdrasilLog.warn("Warning: The type of password encryption used is not secure.")
-            YggdrasilLog.warn("It is recommended to use high-intensity password encryption type to ensure security.")
+            YggdrasilLog.warn("警告: 使用的密码加密类型不安全.")
+            YggdrasilLog.warn("建议使用高强度密码加密类型以确保安全性.")
         }
     }
 }
