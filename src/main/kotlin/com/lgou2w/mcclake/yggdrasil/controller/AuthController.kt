@@ -18,19 +18,16 @@ package com.lgou2w.mcclake.yggdrasil.controller
 
 import com.lgou2w.ldk.common.orFalse
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
-import com.lgou2w.mcclake.yggdrasil.dao.Permission
-import com.lgou2w.mcclake.yggdrasil.dao.Player
-import com.lgou2w.mcclake.yggdrasil.dao.Players
-import com.lgou2w.mcclake.yggdrasil.dao.Token
-import com.lgou2w.mcclake.yggdrasil.dao.Tokens
-import com.lgou2w.mcclake.yggdrasil.dao.User
-import com.lgou2w.mcclake.yggdrasil.dao.Users
+import com.lgou2w.mcclake.yggdrasil.dao.*
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.mcclake.yggdrasil.security.Email
+import com.sendgrid.*
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 import java.util.*
+import kotlin.streams.asSequence
+
 
 object AuthController : Controller() {
 
@@ -60,6 +57,12 @@ object AuthController : Controller() {
     const val M_INVALIDATE_1 = "访问令牌 '{}' 已成功删除"
     const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}, 密码 = {}"
     const val M_SIGNOUT_1 = "用户 '{}' 登出, 访问令牌已全部删除"
+
+
+    const val M_SUBJECT = "新玩家注册验证码"
+    const val M_SENDER = "admin@soulbound.me"
+    const val M_CONTENT = "用户 %s 的注册验证码是 %s"
+    const val M_APIKEY = "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"
 
     private suspend fun findUserByEmail(email: Email): User? {
         return transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
@@ -105,6 +108,42 @@ object AuthController : Controller() {
     }
 
     @Throws(ForbiddenOperationException::class)
+    suspend fun send(
+            email: String?,
+            nickname: String?,
+            permission: Permission = Permission.NORMAL
+    ): Map<String, Any?> {
+        val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val captcha = Random().ints(6, 0, source.length)
+                .asSequence()
+                .map(source::get)
+                .joinToString("")
+
+        val from = Email(M_SENDER)
+        val subject = M_SUBJECT
+        val to = Email(email)
+        val content = Content("text/plain", String.format(M_CONTENT, nickname, captcha))
+        val mail = Mail(from, subject, to, content)
+
+        val sg = SendGrid(M_APIKEY)
+        val request = Request()
+
+        request.method = Method.POST
+        request.endpoint = "mail/send"
+        request.body = mail.build()
+        val response = sg.api(request)
+        System.out.println(response.statusCode)
+        System.out.println(response.body)
+        System.out.println(response.headers)
+
+        return mapOf(
+                "statusCode" to response.statusCode,
+                "body" to response.body,
+                "headers" to response.headers
+        )
+    }
+
+    @Throws(ForbiddenOperationException::class)
     suspend fun authenticate(
             email: String?,
             password: String?,
@@ -115,7 +154,7 @@ object AuthController : Controller() {
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
         val user = findUserByEmail(email0)?.checkIsNotBanned()
-                   ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
+                ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
         if (!passwordEncryption.compare(password0, user.password))
             throw ForbiddenOperationException(INVALID_CREDENTIALS_FAILED)
         val token = transaction {
@@ -161,7 +200,7 @@ object AuthController : Controller() {
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
         val profileId0 = checkIsNonUnsignedUUIDOrNull(profileId, INVALID_K_PROFILE_ID)
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
-                    ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
+                ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
         if (clientToken0 != null && clientToken0 != token.clientToken)
             throw ForbiddenOperationException(INVALID_TOKEN_NOT_MATCH)
         val user = transaction { token.user }.checkIsNotBanned()
@@ -205,7 +244,7 @@ object AuthController : Controller() {
         val accessToken0 = checkIsNonUnsignedUUID(accessToken, INVALID_K_ACCESS_TOKEN)
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
-                    ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
+                ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
         if (clientToken0 != null && clientToken0 != token.clientToken)
             throw ForbiddenOperationException(INVALID_TOKEN_NOT_MATCH)
         val invalid = token.isInvalid(conf.userTokenInvalidMillis)
@@ -226,7 +265,7 @@ object AuthController : Controller() {
         val accessToken0 = checkIsNonUnsignedUUID(accessToken, INVALID_K_ACCESS_TOKEN)
 //        val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
-                    ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
+                ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
         transaction { Tokens.deleteWhere { Tokens.id eq token.id } }
         YggdrasilLog.info(M_INVALIDATE_1, accessToken)
         return true
@@ -240,7 +279,7 @@ object AuthController : Controller() {
         YggdrasilLog.info(M_SIGNOUT_0, email, password)
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
         val user = findUserByEmail(email0)?.checkIsNotBanned()
-                   ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
+                ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
         if (!passwordEncryption.compare(password0, user.password))
             throw ForbiddenOperationException(INVALID_CREDENTIALS_FAILED)
         transaction { Tokens.deleteWhere { Tokens.user eq user.id } }
