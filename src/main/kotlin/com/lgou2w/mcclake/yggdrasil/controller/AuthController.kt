@@ -59,9 +59,9 @@ object AuthController : Controller() {
     const val M_SIGNOUT_1 = "用户 '{}' 登出, 访问令牌已全部删除"
 
 
-    const val M_SUBJECT = "新玩家注册验证码"
+    const val M_SUBJECT = "欢迎来到像素时光"
     const val M_SENDER = "admin@soulbound.me"
-    const val M_CONTENT = "用户 %s 的注册验证码是 %s"
+    const val M_CONTENT = "新用户 %s 的注册验证码是 %s"
     const val M_APIKEY = "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"
 
     private suspend fun findUserByEmail(email: Email): User? {
