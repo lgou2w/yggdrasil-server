@@ -110,6 +110,13 @@
             <version>${kotlin.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!--SendGrid-->
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
         <!-- Junit -->
         <dependency>
             <groupId>junit</groupId>
