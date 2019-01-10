@@ -12,15 +12,14 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when register a new user.
+ * ## POST request when verifying a new registration.
  *
  * * RateLimiter: key = ip
  * * Request:
  * ```json
  * {
  *   "username": "user email",
- *   "password": "user password",
- *   "nickname": "user nickname" (optional)
+ *   "nickname": "user nickname"
  * }
  * ```
  */
