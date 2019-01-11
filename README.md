@@ -29,6 +29,7 @@ src/...
 │   │   ├── Invalidate.kt                         POST 吊销令牌
 │   │   ├── Refresh.kt                            POST 刷新令牌
 │   │   ├── Register.kt                           POST 用户注册
+│   │   ├── RegisterVerify.kt                     POST 用户注册前验证
 │   │   ├── Signout.kt                            POST 用户登出
 │   │   ├── Validate.kt                           POST 验证令牌
 │   ├── sessionserver                           会话服务器路由器（玩家加入服务器、服务器验证、玩家档案获取
