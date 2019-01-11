@@ -1,11 +1,37 @@
 # Yggdrasil Server
 A ktor-based minecraft yggdrasil account server
 
-# 前言
+# 介绍
 
 TODO
 
-# 结构
+# 功能特性
+
+* 标准 Minecraft Yggdrasil 规范实现
+    * 登录服务器 AuthServer
+        * 登录 Authenticate
+        * 刷新 Refresh
+        * 验证 Validate
+        * 撤销 Invalidate
+        * 登出 Signout
+    * 会话服务器 SessionServer
+        * [WIP] 客户端加入 Join
+        * [WIP] 服务端加入 HasJoined
+        * [WIP] 档案查询 Profile
+    * 材质服务器 Textures
+        * [WIP] 材质获取 Obtain
+* 标准规范实现的扩展功能和特性
+    * 登录服务器 AuthServer
+        * [WIP] 注册 Register
+        * [WIP] 验证码 RegisterVerify
+    * 材质服务器
+        * [WIP] 材质上传 Unload
+* 更多 TODO
+
+# 目录结构
+
+<details>
+<summary>查看结构</summary>
 
 ```
 src/...
@@ -65,6 +91,8 @@ resources/...
 ├── yggdrasil.conf                            应用程序配置文件
 ```
 
+</details>
+
 # 技术栈
 
 * [`ldk`](https://github.com/lgou2w/ldk)
@@ -73,7 +101,7 @@ resources/...
 * [`Exposed`](https://github.com/JetBrains/Exposed)
 * [`Coroutines`](https://github.com/Kotlin/kotlinx.coroutines)
 
-# 部署
+# 如何部署
 
 * JDK 8
 * JRE 8
