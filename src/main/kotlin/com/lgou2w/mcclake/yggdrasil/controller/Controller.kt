@@ -18,10 +18,13 @@ package com.lgou2w.mcclake.yggdrasil.controller
 
 import com.lgou2w.mcclake.yggdrasil.DefaultYggdrasilService
 import com.lgou2w.mcclake.yggdrasil.YggdrasilService
+import com.lgou2w.mcclake.yggdrasil.dao.User
+import com.lgou2w.mcclake.yggdrasil.dao.Users
+import com.lgou2w.mcclake.yggdrasil.email.Email
+import com.lgou2w.mcclake.yggdrasil.email.Emails
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
-import com.lgou2w.mcclake.yggdrasil.security.Email
-import com.lgou2w.mcclake.yggdrasil.security.Emails
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
+import org.jetbrains.exposed.sql.or
 import java.util.*
 
 abstract class Controller : YggdrasilService by DefaultYggdrasilService {
@@ -34,6 +37,7 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
         const val INVALID_PASSWORD_FORMAT_RULE2 = "无效的密码格式. 无效强度. 规则: "
         const val INVALID_NICKNAME_FORMAT = "无效的昵称格式."
         const val INVALID_NICKNAME_FORMAT_RULE = "无效昵称格式. 规则: "
+        const val INVALID_USER_BANNED = "无效认证. 用户已被封禁."
     }
 
     @Throws(ForbiddenOperationException::class)
@@ -73,5 +77,20 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
         if (!conf.userRegistrationNicknameVerify.matcher(nickname).matches())
             throw ForbiddenOperationException(INVALID_NICKNAME_FORMAT_RULE + conf.userRegistrationNicknameVerify.pattern())
         return nickname
+    }
+
+    protected suspend fun findUserByEmail(email: Email): User? {
+        return AuthController.transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
+    }
+
+    protected suspend fun findUserByEmailOrNickname(email: Email, nickname: String): User? {
+        return AuthController.transaction { User.find { Users.email eq email or (Users.nickname eq nickname) }.limit(1).firstOrNull() }
+    }
+
+    @Throws(ForbiddenOperationException::class)
+    protected fun User.checkIsNotBanned(): User {
+        if (isBanned)
+            throw ForbiddenOperationException(INVALID_USER_BANNED)
+        return this
     }
 }

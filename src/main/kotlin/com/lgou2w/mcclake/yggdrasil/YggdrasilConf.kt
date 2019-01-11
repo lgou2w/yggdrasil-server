@@ -18,6 +18,7 @@ package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.ldk.common.Version
 import com.lgou2w.ldk.common.isOrLater
+import com.lgou2w.ldk.common.notNull
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import java.io.File
@@ -26,6 +27,7 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import kotlin.system.exitProcess
@@ -51,6 +53,15 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
         val port = connector.getInt("port")
         host to port
     }
+
+    val messagerType : String? = getStringOrNull("$ROOT.messager.type")
+    val messagerFrom : String = config.getString("$ROOT.messager.from")
+
+    val messagerDefaultSmtp : String = config.getString("$ROOT.messager.default.smtp")
+    val messagerDefaultPort : Int = config.getInt("$ROOT.messager.default.port")
+    val isMessagerDefaultSsl : Boolean = config.getBoolean("$ROOT.messager.default.ssl")
+    val messagerDefaultPwd : String = config.getString("$ROOT.messager.default.pwd")
+    val messagerSendGridApiKey : String? = getStringOrNull("$ROOT.messager.sendGrid.apiKey")
 
     val userRegistrationEnable : Boolean = config.getBoolean("$ROOT.user.registration.enable")
     val userRegistrationPasswordVerify : Pattern = getPattern("$ROOT.user.registration.passwordVerify")
@@ -142,15 +153,21 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
                     writeExtensionResources(classLoader, dir)
                     exitProcess(0)
                 }
-                if (currentVersion != null && !currentVersion.isOrLater(resourceVersion)) {
+                return if (currentVersion != null && !currentVersion.isOrLater(resourceVersion)) {
                     YggdrasilLog.info("检测到的旧配置版本需要更新...")
                     YggdrasilLog.info("将旧配置文件复制到 $NAME_OLD")
-                    Files.copy(configFile.toPath(), Paths.get(configFile.parent, NAME_OLD))
+                    Files.copy(
+                            configFile.toPath(),
+                            Paths.get(configFile.parent, NAME_OLD),
+                            StandardCopyOption.REPLACE_EXISTING // 替换现有的
+                    )
                     writeConfiguration(classLoader, configFile)
+                    resourceReader.close()
+                    YggdrasilConf(resourceConfig, dir, resourceVersion)
+                } else {
+                    resourceReader.close()
+                    YggdrasilConf(configCurrent.notNull(), dir, resourceVersion)
                 }
-                resourceReader.close()
-                YggdrasilLog.info("配置文件版本 : ${resourceVersion.version}")
-                return YggdrasilConf(configCurrent ?: resourceConfig, dir, resourceVersion)
             } catch (e: Exception) {
                 YggdrasilLog.error("加载配置文件时错误:", e)
                 exitProcess(1)

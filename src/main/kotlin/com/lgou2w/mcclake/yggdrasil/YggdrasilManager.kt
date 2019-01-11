@@ -18,6 +18,7 @@ package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.ldk.common.notNull
 import com.lgou2w.mcclake.yggdrasil.dao.Dao
+import com.lgou2w.mcclake.yggdrasil.email.EmailManager
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
 import com.lgou2w.mcclake.yggdrasil.security.Passwords
 import com.lgou2w.mcclake.yggdrasil.storage.Storage
@@ -33,9 +34,11 @@ interface YggdrasilService {
 
     val workDir : File
 
-    val manager: YggdrasilManager
+    val manager : YggdrasilManager
 
-    val passwordEncryption: PasswordEncryption
+    val passwordEncryption : PasswordEncryption
+
+    val emailManager : EmailManager
 
     suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
 }
@@ -44,6 +47,7 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
 
     private val initialized = AtomicBoolean(false)
     private var mPasswordEncryption : PasswordEncryption? = null
+    private var mEmailMessager : EmailManager? = null
     private var mStorage : Storage? = null
 
     fun initialize() {
@@ -53,6 +57,7 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
         val storageType = conf.storageType
         val passwordEncryption = conf.passwordEncryption
         mPasswordEncryption = Passwords.newEncryption(passwordEncryption)
+        mEmailMessager = EmailManager(conf)
         mStorage = Storages.newStorage(storageType)
         mStorage?.initialize(conf)
         mStorage?.initializeDao { Dao.initializeRegisters() }
@@ -66,6 +71,8 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
             return
         YggdrasilLog.info("关闭 Yggdrasil 管理器...")
         mPasswordEncryption = null
+        mEmailMessager?.close()
+        mEmailMessager = null
         mStorage?.shutdown()
         mStorage = null
     }
@@ -74,6 +81,7 @@ class YggdrasilManager(val conf: YggdrasilConf) : Closeable {
 
     val storage : Storage get() = mStorage.notNullField()
     val passwordEncryption : PasswordEncryption get() = mPasswordEncryption.notNullField()
+    val emailManager : EmailManager get() = mEmailMessager.notNullField()
 
     private fun checkAndLogUnsafePasswordEncryption() {
         val clazz = mPasswordEncryption?.javaClass

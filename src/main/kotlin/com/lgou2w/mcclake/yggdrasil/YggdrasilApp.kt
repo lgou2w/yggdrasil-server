@@ -18,12 +18,12 @@ package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.mcclake.yggdrasil.dao.Permission
 import com.lgou2w.mcclake.yggdrasil.dao.PermissionSerializer
+import com.lgou2w.mcclake.yggdrasil.email.Email
+import com.lgou2w.mcclake.yggdrasil.email.EmailSerializer
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.mcclake.yggdrasil.error.InternalServerException
 import com.lgou2w.mcclake.yggdrasil.error.NotFoundException
 import com.lgou2w.mcclake.yggdrasil.router.Routers
-import com.lgou2w.mcclake.yggdrasil.security.Email
-import com.lgou2w.mcclake.yggdrasil.security.EmailSerializer
 import com.lgou2w.mcclake.yggdrasil.security.HashedPassword
 import com.lgou2w.mcclake.yggdrasil.security.HashedPasswordSerializer
 import com.lgou2w.mcclake.yggdrasil.util.DateTimeSerializer

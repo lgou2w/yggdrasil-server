@@ -20,7 +20,7 @@ import com.google.gson.*
 import com.lgou2w.ldk.common.Enums
 import com.lgou2w.ldk.common.Valuable
 import com.lgou2w.mcclake.yggdrasil.DefaultYggdrasilService
-import com.lgou2w.mcclake.yggdrasil.security.Email
+import com.lgou2w.mcclake.yggdrasil.email.Email
 import com.lgou2w.mcclake.yggdrasil.security.HashedPassword
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -50,6 +50,9 @@ class User(
     var createdAt by Users.createdAt
     var lastLogged by Users.lastLogged
     var permission by Users.permission
+
+    val isBanned : Boolean
+        get() = permission == Permission.BANNED
 }
 
 enum class Permission(

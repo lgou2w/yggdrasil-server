@@ -19,8 +19,8 @@ package com.lgou2w.mcclake.yggdrasil.dao
 import com.lgou2w.ldk.common.Enums
 import com.lgou2w.ldk.common.notNull
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
-import com.lgou2w.mcclake.yggdrasil.security.Email
-import com.lgou2w.mcclake.yggdrasil.security.Emails
+import com.lgou2w.mcclake.yggdrasil.email.Email
+import com.lgou2w.mcclake.yggdrasil.email.Emails
 import com.lgou2w.mcclake.yggdrasil.security.HashedPassword
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer

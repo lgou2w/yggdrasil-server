@@ -17,6 +17,7 @@
 package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.ldk.common.Version
+import com.lgou2w.mcclake.yggdrasil.email.EmailManager
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
 import com.lgou2w.mcclake.yggdrasil.storage.StorageCoroutineContext
 import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
@@ -52,6 +53,7 @@ object DefaultYggdrasilService : YggdrasilService {
     override val workDir: File = File(System.getProperty("user.dir"))
     override val manager: YggdrasilManager get() = managerImpl
     override val passwordEncryption: PasswordEncryption get() = managerImpl.passwordEncryption
+    override val emailManager: EmailManager get() = managerImpl.emailManager
     override suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
             = managerImpl.storage.transaction(block)
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.lgou2w.mcclake.yggdrasil.security
+package com.lgou2w.mcclake.yggdrasil.email
 
 import com.google.gson.*
 import java.lang.reflect.Type
@@ -38,7 +38,7 @@ object EmailSerializer : JsonSerializer<Email>, JsonDeserializer<Email> {
 
 object Emails {
 
-    // TODO 自定义验证规范
+    // TODO 自定义验证
 
     val PATTERN = Pattern.compile("^(?<id>[A-Za-z0-9_\\-.]{3,})@(?<domain>([A-Za-z0-9_\\-.])+\\.([A-Za-z]{2,4}))$")
 

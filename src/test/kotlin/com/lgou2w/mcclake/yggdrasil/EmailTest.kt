@@ -16,7 +16,7 @@
 
 package com.lgou2w.mcclake.yggdrasil
 
-import com.lgou2w.mcclake.yggdrasil.security.Emails
+import com.lgou2w.mcclake.yggdrasil.email.Emails
 import org.apache.commons.mail.SimpleEmail
 import org.junit.Assert
 import org.junit.Ignore

@@ -20,15 +20,11 @@ import com.lgou2w.ldk.common.orFalse
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.dao.*
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
-import com.lgou2w.mcclake.yggdrasil.security.Email
-import com.lgou2w.mcclake.yggdrasil.util.SendGrid
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 import java.util.*
-import kotlin.streams.asSequence
 
 object AuthController : Controller() {
 
@@ -36,7 +32,6 @@ object AuthController : Controller() {
     const val INVALID_REGISTER_NOT_ALLOWED = "服务器未开启注册."
     const val INVALID_USER_REGISTERED = "无效认证. 用户已经被注册."
     const val INVALID_USER_NOT_EXISTED = "无效认证. 用户未存在."
-    const val INVALID_USER_BANNED = "无效认证. 用户已被封禁."
     const val INVALID_TOKEN_NOT_EXISTED = "无效访问令牌. 未存在."
     const val INVALID_TOKEN_NOT_MATCH = "无效访问令牌. 与客户端令牌不匹配."
     const val INVALID_TOKEN_EXPIRED = "无效访问令牌. 已过期."
@@ -46,7 +41,7 @@ object AuthController : Controller() {
     const val INVALID_K_CLIENT_TOKEN = "客户端令牌"
     const val INVALID_K_PROFILE_ID = "档案 Id"
 
-    const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}, 密码 = {}"
+    const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}" // 密码不暴露给日志
     const val M_REGISTER_1 = "新的用户 '{}' 注册成功"
     const val M_REGISTER_2 = "创建用户昵称 '{}' 的默认玩家 : UUID = {}"
     const val M_AUTHENTICATE_0 = "用户尝试 Authenticate 使用 : 邮箱 = {}, 密码 = {}, 客户端令牌 = {}"
@@ -59,28 +54,8 @@ object AuthController : Controller() {
     const val M_VALIDATE_1 = "访问令牌 '{}' 已过期"
     const val M_INVALIDATE_0 = "用户尝试 Invalidate 使用 : 访问令牌 = {}, 客户端令牌 = {}"
     const val M_INVALIDATE_1 = "访问令牌 '{}' 已成功删除"
-    const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}, 密码 = {}"
+    const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}"
     const val M_SIGNOUT_1 = "用户 '{}' 登出, 访问令牌已全部删除"
-
-    const val M_SUBJECT = "欢迎来到像素时光"
-    const val M_SENDER = "admin@soulbound.me"
-    const val M_CONTENT = "新用户 %s 的注册验证码是 %s"
-    const val M_APIKEY = "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"
-
-    private suspend fun findUserByEmail(email: Email): User? {
-        return transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
-    }
-
-    private suspend fun findUserByEmailOrNickname(email: Email, nickname: String): User? {
-        return transaction { User.find { Users.email eq email or (Users.nickname eq nickname) }.limit(1).firstOrNull() }
-    }
-
-    @Throws(ForbiddenOperationException::class)
-    private fun User.checkIsNotBanned(): User {
-        if (permission == Permission.BANNED)
-            throw ForbiddenOperationException(INVALID_USER_BANNED)
-        return this
-    }
 
     @Throws(ForbiddenOperationException::class)
     suspend fun registerVerify(
@@ -92,27 +67,8 @@ object AuthController : Controller() {
             throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
         val email0 = checkIsValidEmail(email)
         val nickname0 = checkIsValidNickname(nickname)
-
         // TODO Verify code
-
-        val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        val captcha = Random().ints(6, 0, source.length)
-            .asSequence()
-            .map(source::get)
-            .joinToString("")
-
-        val response = SendGrid.sendMail(
-                M_APIKEY,
-                M_SENDER,
-                M_SUBJECT,
-                email0.full,
-                String.format(M_CONTENT, nickname, captcha)
-        )
-        return mapOf(
-                "statusCode" to response.statusCode,
-                "body" to response.body,
-                "headers" to response.headers
-        )
+        return mapOf()
     }
 
     @Throws(ForbiddenOperationException::class)
@@ -123,6 +79,7 @@ object AuthController : Controller() {
             verifyCode: String?,
             permission: Permission = Permission.NORMAL
     ): Map<String, Any?> {
+        // TODO Verify code
         // 配置未开启注册功能, 返回 403 禁止操作
         if (!conf.userRegistrationEnable)
             throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
