@@ -92,7 +92,7 @@ mvn clean package
 3. 用文本编辑工具打开 `yggdrasil.conf` 进行程序配置
 4. 最后双击运行 `yggdrasil.sh` 文件运行并启动服务端
 
-访问 [`localhost:9055`](localhost:9055) 查看服务端是否输出正常
+访问 [`localhost:9055`](http://localhost:9055) 查看服务端是否输出正常
 
 # 协议
 
