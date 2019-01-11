@@ -17,6 +17,7 @@
 package com.lgou2w.mcclake.yggdrasil.storage
 
 import com.lgou2w.ldk.common.Runnable
+import com.lgou2w.ldk.common.isFalse
 import com.lgou2w.ldk.common.notNull
 import com.lgou2w.ldk.coroutines.CoroutineFactory
 import com.lgou2w.ldk.coroutines.SimpleCoroutineFactory
@@ -26,13 +27,14 @@ import com.lgou2w.mcclake.yggdrasil.YggdrasilConf
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import java.nio.file.Paths
+import java.io.File
 import java.sql.Connection
 
 class StorageSQLite : Storage() {
 
     companion object {
         const val M_USE_TYPE = "使用 SQLite 数据库文件 : {}"
+        const val M_INVALID_DB = "错误, 无效或非文件的数据库 : "
     }
 
     private var dProvider : SingleThreadDispatcherProvider? = null
@@ -44,9 +46,22 @@ class StorageSQLite : Storage() {
     override fun initialize(conf: YggdrasilConf) {
         super.initialize(conf)
         val database = conf.config.getString("${YggdrasilConf.ROOT}.storage.sqlite.database")
+        val databaseFile = File(database)
+        if (database.endsWith(".db").not())
+            throw IllegalStateException(M_INVALID_DB + database)
         YggdrasilLog.info(M_USE_TYPE, database)
         dProvider = SingleThreadDispatcherProvider("storage")
-        cf = SQLiteConnectionFactory(Paths.get(database))
+        cf = SQLiteConnectionFactory(
+                (
+                        if (databaseFile.isAbsolute) databaseFile // 绝对路径
+                        else File(conf.workDir, databaseFile.path) // 相对路径
+                )
+                    .apply {
+                        if (parentFile?.exists().isFalse()) // 检测路径是否有多级目录
+                            parentFile?.mkdirs() // 并创建目录
+                    }
+                    .toPath()
+        )
         cf?.initialize()
         coroutineFactory = SimpleCoroutineFactory(dProvider.notNull())
         coroutineFactory?.launch {

@@ -30,12 +30,18 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 import kotlin.system.exitProcess
 
-class YggdrasilConf private constructor(val config: Config, val version: Version) {
+class YggdrasilConf private constructor(val config: Config, val workDir: File, val version: Version) {
 
     val requestQueueLimit = config.getInt("$ROOT.netty.requestQueueLimit")
     val runningLimit = config.getInt("$ROOT.netty.runningLimit")
     val shareWorkGroup = config.getBoolean("$ROOT.netty.shareWorkGroup")
     val responseWriteTimeoutSeconds = config.getInt("$ROOT.netty.responseWriteTimeoutSeconds")
+
+    val httpHeaders : List<Pair<String, String>> = config.getConfig("$ROOT.http.headers").entrySet().map { header ->
+        val name = header.key
+        val value = header.value.unwrapped().toString()
+        name to value
+    }
 
     val storageType : String = config.getString("$ROOT.storage.type")
     val passwordEncryption : String = config.getString("$ROOT.storage.passwordEncryption")
@@ -89,7 +95,7 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
         }
 
         @JvmStatic
-        private fun writConfiguration(classLoader: ClassLoader, configFile: File) {
+        private fun writeConfiguration(classLoader: ClassLoader, configFile: File) {
             val input = InputStreamReader(classLoader.getResourceAsStream(NAME), Charsets.UTF_8)
             val output = OutputStreamWriter(FileOutputStream(configFile), Charsets.UTF_8)
             output.write(input.readText())
@@ -99,10 +105,31 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
         }
 
         @JvmStatic
+        private fun writeExtensionResources(classLoader: ClassLoader, dir: File) {
+            arrayOf(
+                    "yggdrasil-license.txt",
+                    "yggdrasil.cmd",
+                    "yggdrasil.sh"
+            ).forEach { res ->
+                val stream = classLoader.getResourceAsStream(res)
+                if (stream != null) try {
+                    InputStreamReader(stream, Charsets.UTF_8).use { input ->
+                        val output = OutputStreamWriter(FileOutputStream(File(dir, res)), Charsets.UTF_8)
+                        output.write(input.readText())
+                        output.flush()
+                        output.close()
+                    }
+                } catch (e: Exception) {
+                }
+            }
+        }
+
+        @JvmStatic
         fun load(): YggdrasilConf {
             try {
                 val classLoader = YggdrasilConf::class.java.classLoader
-                val configFile = File(System.getProperty("user.dir"), NAME)
+                val dir = File(System.getProperty("user.dir"))
+                val configFile = File(dir, NAME)
                 val configCurrent = configFile.exists().let { if (it) ConfigFactory.parseFile(configFile) else null }
                 val resourceReader = InputStreamReader(classLoader.getResourceAsStream(NAME), Charsets.UTF_8)
                 val resourceConfig = ConfigFactory.parseReader(resourceReader)
@@ -111,18 +138,19 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
                 if (!configFile.exists()) {
                     YggdrasilLog.info("检测到配置文件尚不存在...")
                     YggdrasilLog.info("系统退出, 请完成配置并再次启动应用程序...")
-                    writConfiguration(classLoader, configFile)
+                    writeConfiguration(classLoader, configFile)
+                    writeExtensionResources(classLoader, dir)
                     exitProcess(0)
                 }
                 if (currentVersion != null && !currentVersion.isOrLater(resourceVersion)) {
                     YggdrasilLog.info("检测到的旧配置版本需要更新...")
                     YggdrasilLog.info("将旧配置文件复制到 $NAME_OLD")
                     Files.copy(configFile.toPath(), Paths.get(configFile.parent, NAME_OLD))
-                    writConfiguration(classLoader, configFile)
+                    writeConfiguration(classLoader, configFile)
                 }
                 resourceReader.close()
                 YggdrasilLog.info("配置文件版本 : ${resourceVersion.version}")
-                return YggdrasilConf(resourceConfig, resourceVersion)
+                return YggdrasilConf(configCurrent ?: resourceConfig, dir, resourceVersion)
             } catch (e: Exception) {
                 YggdrasilLog.error("加载配置文件时错误:", e)
                 exitProcess(1)

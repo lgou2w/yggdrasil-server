@@ -20,6 +20,7 @@ import com.lgou2w.mcclake.yggdrasil.cache.SimpleCleanerMemoryCached
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
@@ -28,6 +29,7 @@ class SimpleCleanerMemoryCachedTest {
     private val cached = SimpleCleanerMemoryCached<String, Int>(0L, 1L, TimeUnit.SECONDS, "t-scmct")
 
     @Test
+    @Ignore
     fun test() {
         cached.clear()
         cached.put("a", 1, 1000L) // 1 second

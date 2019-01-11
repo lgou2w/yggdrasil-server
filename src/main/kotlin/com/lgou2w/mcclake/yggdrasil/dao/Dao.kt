@@ -27,13 +27,7 @@ import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IdTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnType
-import org.jetbrains.exposed.sql.IntegerColumnType
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.TextColumnType
-import org.jetbrains.exposed.sql.VarCharColumnType
+import org.jetbrains.exposed.sql.*
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.system.exitProcess
@@ -53,7 +47,7 @@ object Dao {
     fun initializeRegisters() {
         YggdrasilLog.info(M_INITIALIZE)
         try {
-            SchemaUtils.createMissingTablesAndColumns(*registers.values.toTypedArray())
+            SchemaUtils.create(*registers.values.toTypedArray())
         } catch (e: Exception) {
             YggdrasilLog.error(M_INITIALIZE_ERROR, e)
             exitProcess(1)

@@ -38,6 +38,9 @@ hs_err_pid*
 .idea
 *.iml
 # debug configuration
+/yggdrasil-license.txt
+/yggdrasil.cmd
+/yggdrasil.sh
 /yggdrasil.conf
 /yggdrasil.conf.old
 /yggdrasil.db

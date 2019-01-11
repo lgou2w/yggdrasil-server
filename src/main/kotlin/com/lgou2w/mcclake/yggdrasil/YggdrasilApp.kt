@@ -43,7 +43,11 @@ import org.joda.time.DateTime
 import java.util.*
 
 fun Application.yggdrasilApp(manager: YggdrasilManager) {
-    install(DefaultHeaders)
+    install(DefaultHeaders) {
+        manager.conf.httpHeaders.forEach { header ->
+            header(header.first, header.second)
+        }
+    }
     install(CallLogging)
     install(ContentNegotiation) {
         gson {

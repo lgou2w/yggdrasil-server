@@ -18,6 +18,7 @@ package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.mcclake.yggdrasil.cache.SimpleMemoryCached
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SimpleMemoryCachedTest {
@@ -32,6 +33,7 @@ class SimpleMemoryCachedTest {
     }
 
     @Test
+    @Ignore
     fun testTimeout() {
         cached.clear()
         cached.put("abc", 233, 1000L) // 1 second
