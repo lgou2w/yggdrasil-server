@@ -16,12 +16,7 @@
 
 package com.lgou2w.mcclake.yggdrasil.dao
 
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.google.gson.*
 import com.lgou2w.ldk.common.Enums
 import com.lgou2w.ldk.common.Valuable
 import com.lgou2w.mcclake.yggdrasil.DefaultYggdrasilService
@@ -38,7 +33,7 @@ object Users : Dao.UnsignedUUIDTable("yggdrasil_users", "uuid") {
     var email = registerColumn<Email>("email", Dao.EmailColumnType()).uniqueIndex()
     var password = registerColumn<HashedPassword>("password",
             Dao.HashedPasswordColumnType(DefaultYggdrasilService.passwordEncryption))
-    var nickname = varchar("nickname", 64).uniqueIndex().nullable()
+    var nickname = varchar("nickname", 64).uniqueIndex()
     var createdAt = datetime("createdAt").clientDefault { DateTime.now() }
     var lastLogged = datetime("lastLogged").clientDefault { DateTime.now() }
     var permission = registerColumn<Permission>("permission", Dao.PermissionColumnType())

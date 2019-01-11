@@ -21,17 +21,19 @@ import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.dao.*
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.mcclake.yggdrasil.security.Email
-import com.sendgrid.*
+import com.lgou2w.mcclake.yggdrasil.util.SendGrid
+import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 import java.util.*
 import kotlin.streams.asSequence
 
-
 object AuthController : Controller() {
 
     const val INVALID_CREDENTIALS_FAILED = "无效认证. 无效邮箱或密码."
+    const val INVALID_REGISTER_NOT_ALLOWED = "服务器未开启注册."
     const val INVALID_USER_REGISTERED = "无效认证. 用户已经被注册."
     const val INVALID_USER_NOT_EXISTED = "无效认证. 用户未存在."
     const val INVALID_USER_BANNED = "无效认证. 用户已被封禁."
@@ -45,6 +47,8 @@ object AuthController : Controller() {
     const val INVALID_K_PROFILE_ID = "档案 Id"
 
     const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}, 密码 = {}"
+    const val M_REGISTER_1 = "新的用户 '{}' 注册成功"
+    const val M_REGISTER_2 = "创建用户昵称 '{}' 的默认玩家 : UUID = {}"
     const val M_AUTHENTICATE_0 = "用户尝试 Authenticate 使用 : 邮箱 = {}, 密码 = {}, 客户端令牌 = {}"
     const val M_AUTHENTICATE_1 = "新的访问令牌 '{}' 生成给用户 : {}"
     const val M_AUTHENTICATE_2 = "用户登录成功 : {}"
@@ -58,7 +62,6 @@ object AuthController : Controller() {
     const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}, 密码 = {}"
     const val M_SIGNOUT_1 = "用户 '{}' 登出, 访问令牌已全部删除"
 
-
     const val M_SUBJECT = "欢迎来到像素时光"
     const val M_SENDER = "admin@soulbound.me"
     const val M_CONTENT = "新用户 %s 的注册验证码是 %s"
@@ -66,6 +69,10 @@ object AuthController : Controller() {
 
     private suspend fun findUserByEmail(email: Email): User? {
         return transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
+    }
+
+    private suspend fun findUserByEmailOrNickname(email: Email, nickname: String): User? {
+        return transaction { User.find { Users.email eq email or (Users.nickname eq nickname) }.limit(1).firstOrNull() }
     }
 
     @Throws(ForbiddenOperationException::class)
@@ -76,26 +83,72 @@ object AuthController : Controller() {
     }
 
     @Throws(ForbiddenOperationException::class)
+    suspend fun registerVerify(
+            email: String?,
+            nickname: String?
+    ): Map<String, Any?> {
+        // 配置未开启注册功能, 返回 403 禁止操作
+        if (!conf.userRegistrationEnable)
+            throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
+        val email0 = checkIsValidEmail(email)
+        val nickname0 = checkIsValidNickname(nickname)
+
+        // TODO Verify code
+
+        val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val captcha = Random().ints(6, 0, source.length)
+            .asSequence()
+            .map(source::get)
+            .joinToString("")
+
+        val response = SendGrid.sendMail(
+                M_APIKEY,
+                M_SENDER,
+                M_SUBJECT,
+                email0.full,
+                String.format(M_CONTENT, nickname, captcha)
+        )
+        return mapOf(
+                "statusCode" to response.statusCode,
+                "body" to response.body,
+                "headers" to response.headers
+        )
+    }
+
+    @Throws(ForbiddenOperationException::class)
     suspend fun register(
             email: String?,
             password: String?,
             nickname: String?,
+            verifyCode: String?,
             permission: Permission = Permission.NORMAL
     ): Map<String, Any?> {
+        // 配置未开启注册功能, 返回 403 禁止操作
+        if (!conf.userRegistrationEnable)
+            throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
         YggdrasilLog.info(M_REGISTER_0, email, password)
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
         val nickname0 = checkIsValidNickname(nickname)
         val hashedPassword = passwordEncryption.computeHashed(password0)
-        val existed = findUserByEmail(email0)
+        val existed = findUserByEmailOrNickname(email0, nickname0)
         if (existed != null)
             throw ForbiddenOperationException(INVALID_USER_REGISTERED)
         val user = transaction {
-            User.new {
+            val user = User.new {
                 this.email = email0
                 this.password = hashedPassword
                 this.nickname = nickname0
                 this.permission = permission
             }
+            YggdrasilLog.info(M_REGISTER_1, user.email.full)
+            if (conf.userRegistrationNicknamePlayer) {
+                val player = Player.new {
+                    this.name = nickname0
+                    this.user = user
+                }
+                YggdrasilLog.info(M_REGISTER_2, user.nickname, UUIDSerializer.fromUUID(player.id.value))
+            }
+            user
         }
         return mapOf(
                 "id" to user.id.value,
@@ -104,42 +157,6 @@ object AuthController : Controller() {
                 "createdAt" to user.createdAt,
                 "lastLogged" to user.lastLogged,
                 "permission" to user.permission
-        )
-    }
-
-    @Throws(ForbiddenOperationException::class)
-    suspend fun send(
-            email: String?,
-            nickname: String?,
-            permission: Permission = Permission.NORMAL
-    ): Map<String, Any?> {
-        val source = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        val captcha = Random().ints(6, 0, source.length)
-                .asSequence()
-                .map(source::get)
-                .joinToString("")
-
-        val from = Email(M_SENDER)
-        val subject = M_SUBJECT
-        val to = Email(email)
-        val content = Content("text/plain", String.format(M_CONTENT, nickname, captcha))
-        val mail = Mail(from, subject, to, content)
-
-        val sg = SendGrid(M_APIKEY)
-        val request = Request()
-
-        request.method = Method.POST
-        request.endpoint = "mail/send"
-        request.body = mail.build()
-        val response = sg.api(request)
-        System.out.println(response.statusCode)
-        System.out.println(response.body)
-        System.out.println(response.headers)
-
-        return mapOf(
-                "statusCode" to response.statusCode,
-                "body" to response.body,
-                "headers" to response.headers
         )
     }
 

@@ -28,17 +28,17 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when the verification token is valid
+ * ## 验证令牌有效时的 POST 请求
  *
- * Request:
+ * 请求:
  * ```json
  * {
  *   "accessToken": "valid accessToken",
- *   "clientToken": "client identifier", (optional)
+ *   "clientToken": "client identifier", (可选)
  * }
  * ```
  *
- * Response: 204 if successful
+ * 响应: HTTP 204 如果操作成功
  *
  * @see [https://wiki.vg/Authentication#Validate]
  */
@@ -52,7 +52,7 @@ object Validate : RouterHandler {
             routing.post(path) {
                 val request : Request? = call.receive()
                 AuthController.validate(request?.accessToken, request?.clientToken)
-                call.respond(HttpStatusCode.NoContent)
+                call.respond(HttpStatusCode.NoContent) // 如果操作成功, 响应 HTTP 204 无内容
             }
         }
     }

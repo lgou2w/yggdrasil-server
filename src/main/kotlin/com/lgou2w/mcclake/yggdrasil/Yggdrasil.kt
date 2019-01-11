@@ -18,13 +18,13 @@ package com.lgou2w.mcclake.yggdrasil
 
 import com.lgou2w.ldk.common.Version
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
+import com.lgou2w.mcclake.yggdrasil.storage.StorageCoroutineContext
 import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +35,7 @@ import kotlin.system.exitProcess
 
 object Yggdrasil {
     const val NAME = "Yggdrasil"
-    val VERSION = Version(0, 1, 0)
+    val VERSION = Version(0, 1, 1)
 }
 object YggdrasilLog : Logger by LoggerFactory.getLogger(Yggdrasil.NAME)
 
@@ -52,7 +52,7 @@ object DefaultYggdrasilService : YggdrasilService {
     override val workDir: File = File(System.getProperty("user.dir"))
     override val manager: YggdrasilManager get() = managerImpl
     override val passwordEncryption: PasswordEncryption get() = managerImpl.passwordEncryption
-    override suspend fun <T> transaction(block: CoroutineScope.() -> T): T
+    override suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
             = managerImpl.storage.transaction(block)
 }
 

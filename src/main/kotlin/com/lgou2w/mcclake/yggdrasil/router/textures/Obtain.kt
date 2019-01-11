@@ -21,9 +21,9 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 
 /**
- * ## GET request when get the skin texture.
+ * ## 获取皮肤纹理时的 GET 请求
  *
- * Request:
+ * 请求:
  * ```properties
  * hash = 64-character texture hash value.
  * ```

@@ -21,8 +21,8 @@ import com.lgou2w.mcclake.yggdrasil.dao.Dao
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
 import com.lgou2w.mcclake.yggdrasil.security.Passwords
 import com.lgou2w.mcclake.yggdrasil.storage.Storage
+import com.lgou2w.mcclake.yggdrasil.storage.StorageCoroutineContext
 import com.lgou2w.mcclake.yggdrasil.storage.Storages
-import kotlinx.coroutines.CoroutineScope
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,7 +37,7 @@ interface YggdrasilService {
 
     val passwordEncryption: PasswordEncryption
 
-    suspend fun <T> transaction(block: CoroutineScope.() -> T): T
+    suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
 }
 
 class YggdrasilManager(val conf: YggdrasilConf) : Closeable {

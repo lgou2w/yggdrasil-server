@@ -27,10 +27,10 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when the client uses a username and password for authentication.
+ * ## 客户端使用用户名和密码进行身份验证时的 POST 请求
  *
- * * RateLimiter: key = username
- * * Request:
+ * * 速率限制器: 键 = username
+ * * 请求:
  * ```json
  * {
  *   "username": "user email",

@@ -25,7 +25,6 @@ import com.lgou2w.ldk.sql.MySQLConnectionFactory
 import com.lgou2w.ldk.sql.buildConfiguration
 import com.lgou2w.mcclake.yggdrasil.YggdrasilConf
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
-import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.exposed.sql.Database
 import java.util.*
 
@@ -86,11 +85,11 @@ class StorageMySQL : Storage() {
         }
     }
 
-    override suspend fun <T> transaction(block: CoroutineScope.() -> T): T {
+    override suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T {
         return coroutineFactory.notNull().with {
             Database.connect(cf.notNull().dataSource)
             org.jetbrains.exposed.sql.transactions.transaction {
-                block()
+                block(StorageCoroutineContext(this, this@with))
             }
         }
     }

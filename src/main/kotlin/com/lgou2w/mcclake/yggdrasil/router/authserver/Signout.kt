@@ -28,10 +28,10 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when the user needs to logout.
+ * ## 用户需要注销时的 POST 请求
  *
- * RateLimiter: key = username
- * Request:
+ * 速率限制器: 键 = username
+ * 请求:
  * ```json
  * {
  *   "username": "user email",
@@ -39,7 +39,7 @@ import io.ktor.routing.post
  * }
  * ```
  *
- * Response: 204 if successful
+ * 响应: HTTP 204 如果操作成功
  *
  * @see [https://wiki.vg/Authentication#Signout]
  */
@@ -53,7 +53,7 @@ object Signout : RouterHandler {
             routing.post(path) {
                 val request : Request? = call.receive()
                 AuthController.signout(request?.username, request?.password)
-                call.respond(HttpStatusCode.NoContent)
+                call.respond(HttpStatusCode.NoContent) // 如果操作成功, 响应 HTTP 204 无内容
             }
         }
     }

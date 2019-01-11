@@ -16,12 +16,7 @@
 
 package com.lgou2w.mcclake.yggdrasil.security
 
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.google.gson.*
 import java.lang.reflect.Type
 import java.util.regex.Pattern
 
@@ -42,6 +37,8 @@ object EmailSerializer : JsonSerializer<Email>, JsonDeserializer<Email> {
 }
 
 object Emails {
+
+    // TODO 自定义验证规范
 
     val PATTERN = Pattern.compile("^(?<id>[A-Za-z0-9_\\-.]{3,})@(?<domain>([A-Za-z0-9_\\-.])+\\.([A-Za-z]{2,4}))$")
 

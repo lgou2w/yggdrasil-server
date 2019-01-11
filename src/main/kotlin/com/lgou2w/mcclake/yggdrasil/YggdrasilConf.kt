@@ -50,6 +50,7 @@ class YggdrasilConf private constructor(val config: Config, val version: Version
     val userRegistrationPasswordVerify : Pattern = getPattern("$ROOT.user.registration.passwordVerify")
     val userRegistrationPasswordStrengthVerify : Pattern = getPattern("$ROOT.user.registration.passwordStrengthVerify")
     val userRegistrationNicknameVerify : Pattern = getPattern("$ROOT.user.registration.nicknameVerify")
+    val userRegistrationNicknamePlayer : Boolean = config.getBoolean("$ROOT.user.registration.nicknamePlayer")
 
     val userTokenValid : Long = config.getLong("$ROOT.user.token.valid")
     val userTokenValidMillis = userTokenValid * 1000L

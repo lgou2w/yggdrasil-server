@@ -21,16 +21,16 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 
 /**
- * ## GET request when the server authenticates the client.
+ * ## 服务器验证客户端是否已加入服务器时的 GET 请求
  *
- * Request:
+ * 请求:
  * ```properties
  * username = "profile identifier"
  * serverId = "server id"
- * ip = "client ip" (optional)
+ * ip = "client ip" (可选) // TODO
  * ```
  *
- * Response: 204 if failed
+ * 响应: HTTP 204 如果操作失败
  *
  * @see [https://wiki.vg/Protocol_Encryption#Server]
  */

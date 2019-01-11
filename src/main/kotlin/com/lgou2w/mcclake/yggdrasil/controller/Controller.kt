@@ -32,6 +32,7 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
         const val INVALID_PASSWORD_FORMAT = "无效的密码格式."
         const val INVALID_PASSWORD_FORMAT_RULE = "无效的密码格式. 规则: "
         const val INVALID_PASSWORD_FORMAT_RULE2 = "无效的密码格式. 无效强度. 规则: "
+        const val INVALID_NICKNAME_FORMAT = "无效的昵称格式."
         const val INVALID_NICKNAME_FORMAT_RULE = "无效昵称格式. 规则: "
     }
 
@@ -66,8 +67,9 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
     }
 
     @Throws(ForbiddenOperationException::class)
-    fun checkIsValidNickname(nickname: String?): String? {
-        if (nickname == null) return null
+    fun checkIsValidNickname(nickname: String?): String {
+        if (nickname == null)
+            throw ForbiddenOperationException(INVALID_NICKNAME_FORMAT)
         if (!conf.userRegistrationNicknameVerify.matcher(nickname).matches())
             throw ForbiddenOperationException(INVALID_NICKNAME_FORMAT_RULE + conf.userRegistrationNicknameVerify.pattern())
         return nickname

@@ -21,9 +21,18 @@ import com.lgou2w.ldk.common.notNull
 import com.lgou2w.mcclake.yggdrasil.YggdrasilConf
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.exposed.sql.Transaction
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
+
+class StorageCoroutineContext(
+        val transaction: Transaction,
+        coroutine: CoroutineScope
+) : CoroutineScope by coroutine {
+    fun commit() = transaction.commit()
+    fun rollback() = transaction.rollback()
+}
 
 abstract class Storage {
 
@@ -39,7 +48,7 @@ abstract class Storage {
 
     abstract fun initializeDao(block: Runnable)
 
-    abstract suspend fun <T> transaction(block: CoroutineScope.() -> T): T
+    abstract suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
 
     override fun toString(): String {
         return "Storage(type=$type)"

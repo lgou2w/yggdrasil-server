@@ -28,9 +28,9 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when revoking a token.
+ * ## 撤消令牌时的 POST 请求
  *
- * Request:
+ * 请求:
  * ```json
  * {
  *   "accessToken": "valid accessToken",
@@ -38,7 +38,7 @@ import io.ktor.routing.post
  * }
  * ```
  *
- * Response: 204 Always
+ * 响应: 始终 HTTP 204
  *
  * @see [https://wiki.vg/Authentication#Invalidate]
  */
@@ -55,7 +55,7 @@ object Invalidate : RouterHandler {
                     AuthController.invalidate(request?.accessToken, request?.clientToken)
                 } catch (e: Exception) {
                 } finally {
-                    call.respond(HttpStatusCode.NoContent) // Always 204
+                    call.respond(HttpStatusCode.NoContent) // 总是 204, 不管操作是否成功
                 }
             }
         }

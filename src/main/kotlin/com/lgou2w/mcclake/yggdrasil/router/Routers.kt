@@ -19,12 +19,7 @@ package com.lgou2w.mcclake.yggdrasil.router
 import com.lgou2w.mcclake.yggdrasil.DefaultYggdrasilService
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.YggdrasilService
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Authenticate
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Invalidate
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Refresh
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Register
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Signout
-import com.lgou2w.mcclake.yggdrasil.router.authserver.Validate
+import com.lgou2w.mcclake.yggdrasil.router.authserver.*
 import com.lgou2w.mcclake.yggdrasil.router.sessionserver.HasJoined
 import com.lgou2w.mcclake.yggdrasil.router.sessionserver.Join
 import com.lgou2w.mcclake.yggdrasil.router.sessionserver.Profile
@@ -82,6 +77,7 @@ object Routers {
     val yggdrasil : RegisteredRouterTree = routerTree("/",
             routerNode(Index),
             routerTree("/authserver",
+                    routerNode(RegisterVerify),
                     routerNode(Register),
                     routerNode(Authenticate),
                     routerNode(Refresh),

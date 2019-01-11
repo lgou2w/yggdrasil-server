@@ -21,9 +21,9 @@ import io.ktor.routing.Routing
 import io.ktor.routing.post
 
 /**
- * ## POST request when the client connects to the server.
+ * ## 客户端连接到服务器时的 POST 请求
  *
- * Request:
+ * 请求:
  * ```json
  * {
  *   "accessToken": "access token",
@@ -32,7 +32,7 @@ import io.ktor.routing.post
  * }
  * ```
  *
- * Response: 204 if successful
+ * 响应: HTTP 204 如果操作成功
  *
  * @see [https://wiki.vg/Protocol_Encryption#Client]
  */

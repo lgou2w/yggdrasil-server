@@ -27,9 +27,9 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when user refreshes token.
+ * ## 用户刷新令牌时的 POST 请求
  *
- * Request:
+ * 请求:
  * ```json
  * {
  *   "accessToken": "valid accessToken",

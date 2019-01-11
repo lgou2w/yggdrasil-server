@@ -16,20 +16,14 @@
 
 package com.lgou2w.mcclake.yggdrasil.router.textures
 
-import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.router.RouterHandler
-import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.request.receiveMultipart
-import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## POST request when upload skin texture.
+ * ## 上传皮肤纹理时的 POST 请求
  */
 object Upload : RouterHandler {
 
@@ -39,15 +33,7 @@ object Upload : RouterHandler {
     override fun install(routing: Routing) {
         routing.accept(ContentType.MultiPart.FormData) {
             post(path) {
-                val multipart = call.receiveMultipart()
-                val parts = multipart.readAllParts()
-                val model = parts[0] as PartData.FormItem
-                val file = parts[1] as PartData.FileItem
-                YggdrasilLog.info("Model => ${model.value}")
-                YggdrasilLog.info("File => ${file.originalFileName}")
-                model.dispose()
-                file.dispose()
-                call.respond(mapOf("ok" to true))
+                TODO()
             }
         }
     }

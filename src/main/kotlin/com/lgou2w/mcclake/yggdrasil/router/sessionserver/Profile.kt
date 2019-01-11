@@ -21,14 +21,14 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 
 /**
- * ## POST request when the client connects to the server.
+ * ## 客户端查询用户档案时的 GET 请求
  *
- * Request:
+ * 请求:
  * ```properties
- * unsigned = true/false (optional)
+ * unsigned = true/false (可选) // TODO
  * ```
  *
- * Response: 204 if user not exists
+ * 响应: HTTP 204 如果用户没有存在
  *
  * @see [https://wiki.vg/Protocol_Encryption#Client]
  */
