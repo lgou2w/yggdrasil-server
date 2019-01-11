@@ -7,26 +7,24 @@ TODO
 
 # 功能特性
 
-* 标准 Minecraft Yggdrasil 规范实现
-    * 登录服务器 AuthServer
-        * 登录 Authenticate
-        * 刷新 Refresh
-        * 验证 Validate
-        * 撤销 Invalidate
-        * 登出 Signout
-    * 会话服务器 SessionServer
-        * [WIP] 客户端加入 Join
-        * [WIP] 服务端加入 HasJoined
-        * [WIP] 档案查询 Profile
-    * 材质服务器 Textures
-        * [WIP] 材质获取 Obtain
-* 标准规范实现的扩展功能和特性
-    * 登录服务器 AuthServer
-        * [WIP] 注册 Register
-        * [WIP] 验证码 RegisterVerify
-    * 材质服务器
-        * [WIP] 材质上传 Unload
-* 更多 TODO
+* [服务器信息](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/Index.kt)
+* [登录服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver)
+    * [注册](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Register.kt) [WIP]
+    * [验证码](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/RegisterVerify.kt) [WIP]
+    * [登录](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Authenticate.kt)
+    * [刷新](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Refresh.kt)
+    * [验证](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Validate.kt)
+    * [撤销](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Invalidate.kt)
+    * [登出](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Signout.kt)
+* [会话服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver)
+    * [客户端加入](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/Join.kt) [WIP]
+    * [服务端加入](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/HasJoined.kt) [WIP]
+    * [档案查询](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/Profile.kt) [WIP]
+* [材质服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures)
+    * [材质获取](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures/Obtain.kt) [WIP]
+    * [材质上传](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures/Upload.kt) [WIP]
+* 更多
+    * TODO
 
 # 目录结构
 
