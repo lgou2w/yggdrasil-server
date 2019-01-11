@@ -85,13 +85,14 @@ cd yggdrasil-server
 mvn clean package
 ```
 
-在 `target` 目录获取已构建好的 JAR 文件. 然后运行 (x.y.z) 为版本号
+在 `target` 目录获取已构建好的 `JAR` => `yggdrasil-server-x.y.z.jar` 文件.
 
-```sh
-java -jar yggdrasil-server-x.y.z.jar
-```
+1. 将 `JAR` 文件移动到适宜的目录
+2. 双击运行 `JAR` 文件进行首次初始化
+3. 用文本编辑工具打开 `yggdrasil.conf` 进行程序配置
+4. 最后双击运行 `yggdrasil.sh` 文件运行并启动服务端
 
-配置你的 `yggdrasil.conf` 文件, 按需求开启功能. 最后访问主页查看响应.
+访问 [`localhost:9055`](localhost:9055) 查看服务端是否输出正常
 
 # 协议
 

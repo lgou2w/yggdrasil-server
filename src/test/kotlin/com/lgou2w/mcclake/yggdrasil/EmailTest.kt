@@ -32,7 +32,7 @@ class EmailTest {
         Assert.assertEquals("hotmail.com", email.domain)
     }
 
-    @Test
+    @Test(expected = UnsupportedOperationException::class)
     fun testEmailNot() {
         val error = "a@bc.def" // error, id at least 3 character
         Emails.parse(error)
