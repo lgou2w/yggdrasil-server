@@ -43,7 +43,7 @@ object Templates {
             val input = InputStreamReader(stream, Charsets.UTF_8)
             val config = ConfigFactory.parseReader(input)
             if (writable) {
-                val input2 = InputStreamReader(stream, Charsets.UTF_8)
+                val input2 = InputStreamReader(Template::class.java.classLoader.getResourceAsStream(name), Charsets.UTF_8)
                 val output = OutputStreamWriter(FileOutputStream(file), Charsets.UTF_8)
                 output.write(input2.readText())
                 output.flush()

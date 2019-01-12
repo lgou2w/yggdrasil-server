@@ -52,7 +52,7 @@ object AuthController : Controller() {
     const val INVALID_K_PROFILE_ID = "档案 Id"
 
     const val M_VEIRYF_0 = "向用户 '{}' 发送邮件成功: {}"
-    const val M_VERIFY_1 = "向用户 '{}' 发送邮件时错误:"
+    const val M_VERIFY_1 = "向用户发送邮件时错误:"
     const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}, 昵称 = {}, 验证码 = {}" // 密码不暴露给日志
     const val M_REGISTER_1 = "新的用户 '{}' 注册成功"
     const val M_REGISTER_2 = "创建用户昵称 '{}' 的默认玩家 : UUID = {}"
@@ -90,14 +90,14 @@ object AuthController : Controller() {
                 Math.round(timeout * 1.5),
                 TimeUnit.SECONDS, "verifycode"
         ) {
-            private val codeTimeout = timeout * 1000L // 秒到毫秒
-            private val codeLength = length
-            private val counter = AtomicInteger(0)
+            val codeTimeout = timeout * 1000L // 秒到毫秒
+            val codeLength = length
 
             // 延时开启清洁器线程
             // 默认应用程序启动后不 start
             // 当生成后并且超过指定阈值
             // 那么开始清洁功能
+            private val counter = AtomicInteger(0)
             private val threshold = Runtime.getRuntime().availableProcessors() * 10
             private fun canStartWork() {
                 if (!isAtWorking && counter.incrementAndGet() > threshold) {
@@ -165,15 +165,17 @@ object AuthController : Controller() {
                 val template = Templates.parse(workDir, Templates.T_REGISTER, true,
                         "%nickname%" to nickname0,
                         "%email%" to email0.value,
-                        "%verifyCode%" to verifyCode
+                        "%verifyCode%" to verifyCode,
+                        "%timeout%" to verifyCodeCached.codeTimeout / 1000L, // 秒
+                        "%timeout-m%" to verifyCodeCached.codeTimeout / 1000L / 60 // 分
                 )
-                // 阻塞响应直到发送成功或失败
+                // 阻塞响应直到发送成功或失败 // TODO 一定要阻塞吗。使用异步发送不需要管是否发送成功？
                 val emailResponse = emailManager.sendHtml(email0.value, template.subject, template.content)
-                YggdrasilLog.info(M_VEIRYF_0, emailResponse)
+                YggdrasilLog.info(M_VEIRYF_0, email0.value, emailResponse)
             } catch (e: Exception) {
                 // 解析模板发送邮件失败，移除验证码缓存并抛出服务器内部异常
                 verifyCodeCached.remove(email0.value)
-                YggdrasilLog.error(M_VERIFY_1, e, email0.value)
+                YggdrasilLog.error(M_VERIFY_1, e)
                 throw InternalServerException()
             }
         }
@@ -240,6 +242,10 @@ object AuthController : Controller() {
             }
             user
         }
+
+        // 注册成功，移除验证码缓存
+        verifyCodeCached.remove(user.email.value)
+
         return mapOf(
                 "id" to user.id.value,
                 "email" to user.email,

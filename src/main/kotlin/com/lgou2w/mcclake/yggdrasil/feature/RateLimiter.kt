@@ -16,71 +16,64 @@
 
 package com.lgou2w.mcclake.yggdrasil.feature
 
+import com.lgou2w.ldk.common.Applicator
 import com.lgou2w.ldk.common.Callable
+import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
-import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.uri
 import io.ktor.response.header
 import io.ktor.response.respond
 import io.ktor.util.AttributeKey
+import io.ktor.util.pipeline.PipelineContext
+import io.ktor.util.pipeline.PipelinePhase
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class RateLimiter(config: Configuration) {
+class RateLimiter(configuration: Configuration) {
 
-    val interval = config.interval
-    val limit = config.limit
-    val watchs = Collections.unmodifiableSet(config.watchs)
-    val cached : MutableMap<String, Record> = ConcurrentHashMap()
-
-    fun inWatch(uri: String): Boolean {
-        return watchs.any { it.match(uri) }
-    }
-
-    fun canLimit(ip: String): Pair<Boolean, Long> {
-        val record = cached[ip]
-        val currentTime = System.currentTimeMillis()
-        return if (record == null) {
-            cached[ip] = Record().apply { reset() }
-            false to 0L
-        } else {
-            val reset = currentTime - record.lastTimed > interval
-            if (reset) {
-                record.reset()
-                false to 0L
-            } else {
-                record.increaseCount()
-                val limited = !reset && record.count > limit
-                limited to if (limited) record.lastTimed + interval else {
-                    record.lastTimed = currentTime
-                    0L
-                }
-            }
-        }
+    private val limiters = configuration.limiters.map { src ->
+        val dest = Limiter()
+        dest.interval = src.interval
+        dest.threshold = src.threshold
+        dest.cached = ConcurrentHashMap()
+        dest.pipeline = src.pipeline
+        dest.key = src.key
+        dest.watchs = Collections.unmodifiableSet(src.watchs)
+        dest.watchsRegex = Collections.unmodifiableSet(src.watchsRegex)
+        dest.limited = src.limited
+        dest
     }
 
     class Configuration {
+
+        internal var limiters : MutableList<Limiter> = ArrayList()
+
+        fun limit(limiter: Applicator<Limiter>) {
+            limiters.add(Limiter().also(limiter))
+        }
+    }
+
+    // TODO 缓存控制
+
+    class Limiter {
+
         var interval : Long = 60000L
-        var limit : Int = 30
-        var watchs : MutableSet<Watch<*>> = HashSet()
-        inline fun watch(block: Callable<String>) { watchs.add(WatchString(block())) }
-        inline fun watchRegex(block: Callable<Regex>) { watchs.add(WatchRegex(block())) }
-    }
+        var threshold : Int = 30
+        var pipeline : PipelinePhase = ApplicationCallPipeline.Monitoring
+        var limitedStatus : HttpStatusCode = HttpStatusCode.TooManyRequests
 
-    abstract class Watch<T>(val target: T) : Comparable<T> {
-        abstract fun match(source: String): Boolean
-    }
+        internal var cached : MutableMap<String, Record> = HashMap(0)
+        internal var key : suspend (ApplicationCall) -> String = { call -> call.request.local.remoteHost }
+        internal var watchs : MutableSet<String> = HashSet()
+        internal var watchsRegex : MutableSet<Regex> = HashSet()
+        internal var limited : (suspend (ApplicationCall, String) -> Unit)? = null
 
-    class WatchString(target: String) : Watch<String>(target) {
-        override fun match(source: String): Boolean = source == target
-        override fun compareTo(other: String): Int = target.compareTo(other)
-    }
-
-    class WatchRegex(target: Regex) : Watch<Regex>(target) {
-        override fun match(source: String): Boolean = target.matches(source)
-        override fun compareTo(other: Regex): Int = target.pattern.compareTo(other.pattern)
+        fun key(block: suspend (ApplicationCall) -> String) { key = block }
+        fun watch(block: Callable<String>) { watchs.add(block()) }
+        fun watchRegex(block: Callable<Regex>) { watchsRegex.add(block()) }
+        fun limitedBefore(block: (suspend (ApplicationCall, String) -> Unit)?) { limited = block }
     }
 
     class Record {
@@ -95,19 +88,55 @@ class RateLimiter(config: Configuration) {
         }
     }
 
+    private fun inWatch(limiter: Limiter, uri: String): Boolean {
+        return limiter.watchs.any { it == uri } ||
+               limiter.watchsRegex.any { it.matches(uri) }
+    }
+
+    private fun canLimit(limiter: Limiter, key: String): Pair<Boolean, Long> {
+        val record = limiter.cached[key]
+        val currentTime = System.currentTimeMillis()
+        return if (record == null) {
+            limiter.cached[key] = Record().apply { reset() }
+            false to 0L
+        } else {
+            val reset = currentTime - record.lastTimed > limiter.interval
+            if (reset) {
+                record.reset()
+                false to 0L
+            } else {
+                record.increaseCount()
+                val limited = !reset && record.count > limiter.threshold
+                limited to if (limited) record.lastTimed + limiter.interval else {
+                    record.lastTimed = currentTime
+                    0L
+                }
+            }
+        }
+    }
+
+    internal suspend fun intercept(limiter: Limiter, context: PipelineContext<Unit, ApplicationCall>) {
+        if (inWatch(limiter, context.context.request.uri)) {
+            val key = limiter.key(context.context)
+            val (limited, retryAfter) = canLimit(limiter, key)
+            if (limited) {
+                limiter.limited?.invoke(context.context, key)
+                context.context.response.header("Retry-After", retryAfter)
+                context.context.respond(limiter.limitedStatus)
+                context.finish()
+            }
+        }
+    }
+
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, RateLimiter> {
-        override val key: AttributeKey<RateLimiter> = AttributeKey("RateLimiter")
+
+        override val key: AttributeKey<RateLimiter> = AttributeKey("Rate Limiter")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): RateLimiter {
-            val feature = RateLimiter(Configuration().also(configure))
-            pipeline.intercept(ApplicationCallPipeline.Monitoring) {
-                if (feature.inWatch(call.request.uri)) {
-                    val ip = call.request.local.remoteHost
-                    val (limited, retryAfter) = feature.canLimit(ip)
-                    if (limited) {
-                        call.response.header("Retry-After", retryAfter)
-                        call.respond(HttpStatusCode.TooManyRequests)
-                        finish()
-                    }
+            val configuration = Configuration().also(configure)
+            val feature = RateLimiter(configuration)
+            feature.limiters.forEach { limiter ->
+                pipeline.intercept(limiter.pipeline) {
+                    feature.intercept(limiter, this)
                 }
             }
             return feature
