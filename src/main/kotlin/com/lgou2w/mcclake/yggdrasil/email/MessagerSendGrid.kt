@@ -43,7 +43,11 @@ class MessagerSendGrid : Messager() {
             val statusCode: Int?,
             val body: String?,
             val headers: Map<String, String>?
-    ) : Response
+    ) : Response {
+        override fun toString(): String {
+            return "MessagerSendGrid(statusCode=$statusCode)"
+        }
+    }
 
     override suspend fun dispatch(
             to: List<String>,

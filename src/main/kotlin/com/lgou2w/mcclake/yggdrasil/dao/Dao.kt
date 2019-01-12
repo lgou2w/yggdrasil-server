@@ -20,7 +20,7 @@ import com.lgou2w.ldk.common.Enums
 import com.lgou2w.ldk.common.notNull
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.email.Email
-import com.lgou2w.mcclake.yggdrasil.email.Emails
+import com.lgou2w.mcclake.yggdrasil.email.EmailManager
 import com.lgou2w.mcclake.yggdrasil.security.HashedPassword
 import com.lgou2w.mcclake.yggdrasil.security.PasswordEncryption
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
@@ -77,20 +77,22 @@ object Dao {
                 = valueToUUID(value)
     }
 
-    class EmailColumnType : VarCharColumnType() {
+    class EmailColumnType(
+            private val emailManager: EmailManager
+    ) : VarCharColumnType() {
         override fun notNullValueToDB(value: Any): Any {
-            return valueToEmail(value).full
+            return valueToEmail(value).value
         }
         private fun valueToEmail(value: Any): Email {
             return when (value) {
                 is Email -> value
-                is String -> Emails.parse(value)
+                is String -> emailManager.parseEmail(value)
                 else -> throw IllegalArgumentException("Value type is not Email.")
             }
         }
         override fun nonNullValueToString(value: Any): String {
             val email = valueToEmail(value)
-            return super.nonNullValueToString(email.full)
+            return super.nonNullValueToString(email.value)
         }
         override fun valueFromDB(value: Any): Any {
             return valueToEmail(value)

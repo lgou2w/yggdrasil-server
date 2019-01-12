@@ -19,6 +19,7 @@ package com.lgou2w.mcclake.yggdrasil
 import com.lgou2w.ldk.common.Version
 import com.lgou2w.ldk.common.isOrLater
 import com.lgou2w.ldk.common.notNull
+import com.lgou2w.mcclake.yggdrasil.email.Templates
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import java.io.File
@@ -54,6 +55,7 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
         host to port
     }
 
+    val messagerEmailVerify : Pattern = getPattern("$ROOT.messager.emailVerify")
     val messagerType : String? = getStringOrNull("$ROOT.messager.type")
     val messagerFrom : String = config.getString("$ROOT.messager.from")
 
@@ -94,6 +96,14 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
         private const val NAME = "yggdrasil.conf"
         private const val NAME_OLD = "yggdrasil.conf.old"
 
+        // 已知 JAR 内的资源文件，程序第一次运行会被输出到外部
+        private val KNOWN_RESOURCES = arrayOf(
+                "yggdrasil-license.txt",
+                "yggdrasil.cmd",
+                "yggdrasil.sh",
+                Templates.T_REGISTER
+        )
+
         private fun Config.getVersion(path: String): Version {
             val versionOnly = getString(path)
             val regex = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)$")
@@ -121,11 +131,7 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
 
         @JvmStatic
         private fun writeExtensionResources(classLoader: ClassLoader, dir: File) {
-            arrayOf(
-                    "yggdrasil-license.txt",
-                    "yggdrasil.cmd",
-                    "yggdrasil.sh"
-            ).forEach { res ->
+            KNOWN_RESOURCES.forEach { res ->
                 val stream = classLoader.getResourceAsStream(res)
                 if (stream != null) try {
                     InputStreamReader(stream, Charsets.UTF_8).use { input ->

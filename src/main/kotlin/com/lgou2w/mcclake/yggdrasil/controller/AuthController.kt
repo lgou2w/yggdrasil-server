@@ -20,7 +20,9 @@ import com.lgou2w.ldk.common.orFalse
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
 import com.lgou2w.mcclake.yggdrasil.cache.SimpleCleanerMemoryCached
 import com.lgou2w.mcclake.yggdrasil.dao.*
+import com.lgou2w.mcclake.yggdrasil.email.Templates
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
+import com.lgou2w.mcclake.yggdrasil.error.InternalServerException
 import com.lgou2w.mcclake.yggdrasil.util.Hex
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
@@ -40,7 +42,7 @@ object AuthController : Controller() {
     const val INVALID_TOKEN_NOT_MATCH = "无效访问令牌. 与客户端令牌不匹配."
     const val INVALID_TOKEN_EXPIRED = "无效访问令牌. 已过期."
     const val INVALID_PROFILE_NOT_EXISTED = "无效档案. 未存在."
-    const val INVALID_VERIFY_CODE_NOT_ALLOWED = "服务器未开启验证码功能."
+    const val INVALID_VERIFY_CODE_NOT_ALLOWED = "服务器验证码功能未开启或不可用."
     const val INVALID_VERIFY_CODE = "无效的验证码."
     const val INVALID_VERIFY_CODE_RULE = "无效的验证码格式."
     const val INVALID_VERIFY_CODE_NOT_MATCH = "无效的验证码. 与预期不符合."
@@ -49,6 +51,8 @@ object AuthController : Controller() {
     const val INVALID_K_CLIENT_TOKEN = "客户端令牌"
     const val INVALID_K_PROFILE_ID = "档案 Id"
 
+    const val M_VEIRYF_0 = "向用户 '{}' 发送邮件成功: {}"
+    const val M_VERIFY_1 = "向用户 '{}' 发送邮件时错误:"
     const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}, 昵称 = {}, 验证码 = {}" // 密码不暴露给日志
     const val M_REGISTER_1 = "新的用户 '{}' 注册成功"
     const val M_REGISTER_2 = "创建用户昵称 '{}' 的默认玩家 : UUID = {}"
@@ -138,25 +142,44 @@ object AuthController : Controller() {
             nickname: String?
     ): Map<String, Any?> {
 
+        // TODO 到时候可能会有忘记密码时的验证码，这个地方等待确认是否修改
         // 配置未开启注册功能, 返回 403 禁止操作
         if (!conf.userRegistrationEnable)
             throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
 
         // 配置未开启验证码功能，返回 403 禁止操作
-        if (!conf.userVerifyCodeEnable)
+        // 或者邮箱管理器信使不可用，也返回
+        if (!conf.userVerifyCodeEnable || !emailManager.isAvailable)
             throw ForbiddenOperationException(INVALID_VERIFY_CODE_NOT_ALLOWED)
 
         val email0 = checkIsValidEmail(email)
         val nickname0 = checkIsValidNickname(nickname)
 
-        // 先从缓存获取，如果过期重新生成
-        val verifyCode = verifyCodeCached[email0.full]
-                         ?: verifyCodeCached.generate(email0.full)
-
-        // TODO 发送邮件？还是？
+        // 先从缓存获取，如果缓存没有
+        // 那么给用户重新生成验证码并发送邮件
+        // 否则直接响应缓存验证码内容，不需要重新发送邮件
+        var verifyCode = verifyCodeCached[email0.value]
+        if (verifyCode == null) {
+            verifyCode = verifyCodeCached.generate(email0.value)
+            try {
+                val template = Templates.parse(workDir, Templates.T_REGISTER, true,
+                        "%nickname%" to nickname0,
+                        "%email%" to email0.value,
+                        "%verifyCode%" to verifyCode
+                )
+                // 阻塞响应直到发送成功或失败
+                val emailResponse = emailManager.sendHtml(email0.value, template.subject, template.content)
+                YggdrasilLog.info(M_VEIRYF_0, emailResponse)
+            } catch (e: Exception) {
+                // 解析模板发送邮件失败，移除验证码缓存并抛出服务器内部异常
+                verifyCodeCached.remove(email0.value)
+                YggdrasilLog.error(M_VERIFY_1, e, email0.value)
+                throw InternalServerException()
+            }
+        }
 
         return mapOf(
-                "email" to email0.full,
+                "email" to email0.value,
                 "nickname" to nickname0,
                 "verifyCode" to verifyCode
         )
@@ -188,7 +211,7 @@ object AuthController : Controller() {
                 throw ForbiddenOperationException(INVALID_VERIFY_CODE_RULE)
 
             // 用户提交的验证码和缓存的验证码不匹配，禁止注册
-            val code = verifyCodeCached[email0.full]
+            val code = verifyCodeCached[email0.value]
             if (verifyCode != code) {
                 YggdrasilLog.info(M_REGISTER_3, verifyCode, code)
                 throw ForbiddenOperationException(INVALID_VERIFY_CODE_NOT_MATCH)
@@ -207,7 +230,7 @@ object AuthController : Controller() {
                 this.nickname = nickname0
                 this.permission = permission
             }
-            YggdrasilLog.info(M_REGISTER_1, user.email.full)
+            YggdrasilLog.info(M_REGISTER_1, user.email.value)
             if (conf.userRegistrationNicknamePlayer) {
                 val player = Player.new {
                     this.name = nickname0
@@ -252,8 +275,8 @@ object AuthController : Controller() {
                 this.user = user
             }
         }
-        YggdrasilLog.info(M_AUTHENTICATE_1, token.id.value, email0.full)
-        YggdrasilLog.info(M_AUTHENTICATE_2, email0.full)
+        YggdrasilLog.info(M_AUTHENTICATE_1, token.id.value, email0.value)
+        YggdrasilLog.info(M_AUTHENTICATE_2, email0.value)
 
         val lastLogged = transaction { DateTime.now().apply { Users.update({ Users.id eq user.id }) { it[lastLogged] = this@apply } } }
         val availableProfiles = transaction { Player.find { Players.user eq user.id }.toList() }
@@ -312,7 +335,7 @@ object AuthController : Controller() {
             }
         }
 
-        YggdrasilLog.info(M_REFRESH_1, token.id.value, user.email.full)
+        YggdrasilLog.info(M_REFRESH_1, token.id.value, user.email.value)
         YggdrasilLog.info(M_REFRESH_2, accessToken, newToken.id.value)
 
         val response = LinkedHashMap<String, Any>()
@@ -393,7 +416,7 @@ object AuthController : Controller() {
             throw ForbiddenOperationException(INVALID_CREDENTIALS_FAILED)
 
         transaction { Tokens.deleteWhere { Tokens.user eq user.id } }
-        YggdrasilLog.info(M_SIGNOUT_1, user.email.full)
+        YggdrasilLog.info(M_SIGNOUT_1, user.email.value)
         return true
     }
 }

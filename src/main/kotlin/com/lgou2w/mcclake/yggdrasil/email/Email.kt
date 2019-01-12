@@ -18,49 +18,16 @@ package com.lgou2w.mcclake.yggdrasil.email
 
 import com.google.gson.*
 import java.lang.reflect.Type
-import java.util.regex.Pattern
 
-data class Email(val id: String, val domain: String) {
-    val full = "$id@$domain"
-    override fun toString(): String = full
-}
+data class Email(val value: String)
 
 object EmailSerializer : JsonSerializer<Email>, JsonDeserializer<Email> {
     override fun serialize(src: Email?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement? {
         if (src == null) return null
-        return JsonPrimitive(src.full)
+        return JsonPrimitive(src.value)
     }
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Email? {
         if (json == null || json !is JsonPrimitive) return null
-        return Emails.parse(json.asString)
-    }
-}
-
-object Emails {
-
-    // TODO 自定义验证
-
-    val PATTERN = Pattern.compile("^(?<id>[A-Za-z0-9_\\-.]{3,})@(?<domain>([A-Za-z0-9_\\-.]+)\\.([A-Za-z]{2,4}))$")
-
-    @Throws(UnsupportedOperationException::class)
-    fun parse(email: String?): Email {
-        if (email == null) throw NullPointerException("email")
-        val matcher = PATTERN.matcher(email)
-        if (matcher.matches()) {
-            val id = matcher.group("id")
-            val domain = matcher.group("domain")
-            return Email(id, domain)
-        }
-        throw UnsupportedOperationException(
-                "Unsupported email format : $email")
-    }
-
-    fun parseSafely(email: String?): Email? {
-        if (email == null) return null
-        return try {
-            parse(email)
-        } catch (e: UnsupportedOperationException) {
-            null
-        }
+        return Email(json.asString)
     }
 }

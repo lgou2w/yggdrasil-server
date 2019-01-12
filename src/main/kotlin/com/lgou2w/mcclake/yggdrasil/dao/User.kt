@@ -30,7 +30,8 @@ import java.lang.reflect.Type
 import java.util.*
 
 object Users : Dao.UnsignedUUIDTable("yggdrasil_users", "uuid") {
-    var email = registerColumn<Email>("email", Dao.EmailColumnType()).uniqueIndex()
+    var email = registerColumn<Email>("email",
+            Dao.EmailColumnType(DefaultYggdrasilService.emailManager)).uniqueIndex()
     var password = registerColumn<HashedPassword>("password",
             Dao.HashedPasswordColumnType(DefaultYggdrasilService.passwordEncryption))
     var nickname = varchar("nickname", 64).uniqueIndex()

@@ -36,7 +36,7 @@ import kotlin.system.exitProcess
 
 object Yggdrasil {
     const val NAME = "Yggdrasil"
-    val VERSION = Version(0, 1, 2)
+    val VERSION = Version(0, 1, 5)
 }
 object YggdrasilLog : Logger by LoggerFactory.getLogger(Yggdrasil.NAME)
 

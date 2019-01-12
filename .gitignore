@@ -43,4 +43,5 @@ hs_err_pid*
 /yggdrasil.sh
 /yggdrasil.conf
 /yggdrasil.conf.old
+/yggdrasil-template*.conf
 /yggdrasil.db

@@ -30,6 +30,23 @@ class EmailManager(
         const val M_INITIALIZE_ERROR = "错误, 初始化邮件信使时异常:"
         const val M_INVALID = "邮件信徒不可用"
         const val M_USE_TYPE = "使用邮件信徒方案类型 : {}"
+        const val M_ILLEGAL = "非法的邮箱格式: "
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun parseEmail(email: String): Email {
+        if (conf.messagerEmailVerify.matcher(email).matches())
+            return Email(email)
+        throw IllegalArgumentException(M_ILLEGAL + email)
+    }
+
+    fun parseEmailSafely(email: String?): Email? {
+        if (email == null || email.isBlank()) return null
+        return try {
+            parseEmail(email)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
     }
 
     val from = conf.messagerFrom
@@ -47,6 +64,8 @@ class EmailManager(
         YggdrasilLog.error(M_INVALID)
         null
     }
+
+    val isAvailable : Boolean get() = messager != null
 
     /**
      * @throws [UnsupportedOperationException]

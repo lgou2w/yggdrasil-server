@@ -29,17 +29,11 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface YggdrasilService {
-
     val conf : YggdrasilConf
-
     val workDir : File
-
     val manager : YggdrasilManager
-
     val passwordEncryption : PasswordEncryption
-
     val emailManager : EmailManager
-
     suspend fun <T> transaction(block: StorageCoroutineContext.() -> T): T
 }
 

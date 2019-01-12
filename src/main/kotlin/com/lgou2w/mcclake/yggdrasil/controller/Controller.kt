@@ -21,7 +21,6 @@ import com.lgou2w.mcclake.yggdrasil.YggdrasilService
 import com.lgou2w.mcclake.yggdrasil.dao.User
 import com.lgou2w.mcclake.yggdrasil.dao.Users
 import com.lgou2w.mcclake.yggdrasil.email.Email
-import com.lgou2w.mcclake.yggdrasil.email.Emails
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.or
@@ -54,7 +53,7 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
 
     @Throws(ForbiddenOperationException::class)
     fun checkIsValidEmail(email: String?): Email {
-        return Emails.parseSafely(email)
+        return emailManager.parseEmailSafely(email)
                ?: throw ForbiddenOperationException(INVALID_EMAIL_FORMAT)
     }
 
