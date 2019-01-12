@@ -27,7 +27,7 @@ import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
- * ## 验证新注册时的 POST 请求
+ * ## 获取验证码时的 POST 请求
  *
  * * 速率限制器: 键 = ip
  * * 请求:
@@ -40,10 +40,10 @@ import io.ktor.routing.post
  *
  * @see [Register]
  */
-object RegisterVerify : RouterHandler {
+object Verify : RouterHandler {
 
     override val method: String = "POST"
-    override val path: String = "/authserver/registerVerify"
+    override val path: String = "/authserver/verify"
 
     override fun install(routing: Routing) {
         routing.accept(ContentType.Application.Json) {
@@ -51,7 +51,7 @@ object RegisterVerify : RouterHandler {
                 val parameters = call.receive<Map<String, Any?>>()
                 val email = parameters["username"]?.toString()
                 val nickname = parameters["nickname"]?.toString()
-                val response = AuthController.registerVerify(email, nickname)
+                val response = AuthController.verify(email, nickname)
                 call.respond(response)
             }
         }

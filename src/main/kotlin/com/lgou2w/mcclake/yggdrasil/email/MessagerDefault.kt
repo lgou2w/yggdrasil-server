@@ -31,13 +31,13 @@ class MessagerDefault : Messager() {
         super.initialize(conf)
         this.smtp = conf.messagerDefaultSmtp
         this.port = conf.messagerDefaultPort
-        this.ssl = conf.isMessagerDefaultSsl
+        this.ssl = conf.messagerDefaultSsl
         this.pwd = conf.messagerDefaultPwd
         if (pwd.isBlank())
             throw IllegalArgumentException("错误, 发件人邮箱密码不能为空.")
-        YggdrasilLog.info(" = 使用邮件 SMTP 服务器 : $smtp")
-        YggdrasilLog.info(" = 使用邮件 SMTP 服务器端口 : $port")
-        YggdrasilLog.info(" = 是否使用邮件 SSL 服务器 : $ssl")
+        YggdrasilLog.info("= 使用邮件 SMTP 服务器 : $smtp")
+        YggdrasilLog.info("= 使用邮件 SMTP 服务器端口 : $port")
+        YggdrasilLog.info("= 是否使用邮件 SSL 服务器 : $ssl")
     }
 
     data class ResponseDefault(val messageId: String?) : Response

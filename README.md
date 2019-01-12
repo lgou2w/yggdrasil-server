@@ -10,7 +10,7 @@ TODO
 * [服务器信息](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/Index.kt)
 * [登录服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver)
     * [注册](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Register.kt) [WIP]
-    * [验证码](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/RegisterVerify.kt) [WIP]
+    * [验证码](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Verify.kt) [WIP]
     * [登录](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Authenticate.kt)
     * [刷新](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Refresh.kt)
     * [验证](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Validate.kt)
@@ -53,7 +53,7 @@ src/...
 │   │   ├── Invalidate.kt                         POST 吊销令牌
 │   │   ├── Refresh.kt                            POST 刷新令牌
 │   │   ├── Register.kt                           POST 用户注册
-│   │   ├── RegisterVerify.kt                     POST 用户注册前验证
+│   │   ├── Verify.kt                             POST 用户验证码
 │   │   ├── Signout.kt                            POST 用户登出
 │   │   ├── Validate.kt                           POST 验证令牌
 │   ├── sessionserver                           会话服务器路由器（玩家加入服务器、服务器验证、玩家档案获取

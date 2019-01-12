@@ -80,11 +80,11 @@ abstract class Controller : YggdrasilService by DefaultYggdrasilService {
     }
 
     protected suspend fun findUserByEmail(email: Email): User? {
-        return AuthController.transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
+        return transaction { User.find { Users.email eq email }.limit(1).firstOrNull() }
     }
 
     protected suspend fun findUserByEmailOrNickname(email: Email, nickname: String): User? {
-        return AuthController.transaction { User.find { Users.email eq email or (Users.nickname eq nickname) }.limit(1).firstOrNull() }
+        return transaction { User.find { Users.email eq email or (Users.nickname eq nickname) }.limit(1).firstOrNull() }
     }
 
     @Throws(ForbiddenOperationException::class)

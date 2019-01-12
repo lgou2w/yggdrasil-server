@@ -11,8 +11,8 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="Yggdrasil" level="INFO" />
-    <logger name="Exposed" level="INFO" />
+    <logger name="Yggdrasil" level="TRACE" />
+    <logger name="Exposed" level="TRACE" />
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
 

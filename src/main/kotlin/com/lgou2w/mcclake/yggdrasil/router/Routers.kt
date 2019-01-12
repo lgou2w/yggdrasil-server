@@ -32,12 +32,12 @@ interface RegisteredRouter {
     val path : String
 }
 
-data class RegisteredRouterNode(
+class RegisteredRouterNode(
         override val path: String,
         val handler: RouterHandler
 ) : RegisteredRouter
 
-data class RegisteredRouterTree(
+class RegisteredRouterTree(
         override val path: String,
         val nodes: List<RegisteredRouter>
 ) : RegisteredRouter, Iterable<RegisteredRouter> {
@@ -77,7 +77,7 @@ object Routers {
     val yggdrasil : RegisteredRouterTree = routerTree("/",
             routerNode(Index),
             routerTree("/authserver",
-                    routerNode(RegisterVerify),
+                    routerNode(Verify),
                     routerNode(Register),
                     routerNode(Authenticate),
                     routerNode(Refresh),

@@ -18,13 +18,17 @@ package com.lgou2w.mcclake.yggdrasil.controller
 
 import com.lgou2w.ldk.common.orFalse
 import com.lgou2w.mcclake.yggdrasil.YggdrasilLog
+import com.lgou2w.mcclake.yggdrasil.cache.SimpleCleanerMemoryCached
 import com.lgou2w.mcclake.yggdrasil.dao.*
 import com.lgou2w.mcclake.yggdrasil.error.ForbiddenOperationException
+import com.lgou2w.mcclake.yggdrasil.util.Hex
 import com.lgou2w.mcclake.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 import java.util.*
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 object AuthController : Controller() {
 
@@ -36,14 +40,19 @@ object AuthController : Controller() {
     const val INVALID_TOKEN_NOT_MATCH = "无效访问令牌. 与客户端令牌不匹配."
     const val INVALID_TOKEN_EXPIRED = "无效访问令牌. 已过期."
     const val INVALID_PROFILE_NOT_EXISTED = "无效档案. 未存在."
+    const val INVALID_VERIFY_CODE_NOT_ALLOWED = "服务器未开启验证码功能."
+    const val INVALID_VERIFY_CODE = "无效的验证码."
+    const val INVALID_VERIFY_CODE_RULE = "无效的验证码格式."
+    const val INVALID_VERIFY_CODE_NOT_MATCH = "无效的验证码. 与预期不符合."
 
     const val INVALID_K_ACCESS_TOKEN = "访问令牌"
     const val INVALID_K_CLIENT_TOKEN = "客户端令牌"
     const val INVALID_K_PROFILE_ID = "档案 Id"
 
-    const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}" // 密码不暴露给日志
+    const val M_REGISTER_0 = "尝试注册新的用户使用 : 邮箱 = {}, 昵称 = {}, 验证码 = {}" // 密码不暴露给日志
     const val M_REGISTER_1 = "新的用户 '{}' 注册成功"
     const val M_REGISTER_2 = "创建用户昵称 '{}' 的默认玩家 : UUID = {}"
+    const val M_REGISTER_3 = "用户验证码 '{}' 和预期不符合, 预期 => '{}'"
     const val M_AUTHENTICATE_0 = "用户尝试 Authenticate 使用 : 邮箱 = {}, 密码 = {}, 客户端令牌 = {}"
     const val M_AUTHENTICATE_1 = "新的访问令牌 '{}' 生成给用户 : {}"
     const val M_AUTHENTICATE_2 = "用户登录成功 : {}"
@@ -57,18 +66,100 @@ object AuthController : Controller() {
     const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}"
     const val M_SIGNOUT_1 = "用户 '{}' 登出, 访问令牌已全部删除"
 
+    private val verifyCodeTimeoutDefault = 300L
+    private val verifyCodeCached by lazy {
+        var timeout = conf.userVerifyCodeTimeout
+        var length = conf.userVerifyCodeLength
+        if (timeout <= 0) {
+            timeout = verifyCodeTimeoutDefault
+            YggdrasilLog.warn("警告: 验证码超时时间必须大于 0, 将使用默认 300 秒")
+        }
+        if (length <= 0) {
+            length = Hex.HEX
+            YggdrasilLog.warn("警告: 验证码随机长度必须大于 0, 将使用默认 16 位")
+        }
+        object : SimpleCleanerMemoryCached<String, String>(
+                // 第一次执行清理的等待时间，默认超时时间
+                timeout,
+                // 每次间隔的时间，默认超时时间的 1.5 倍
+                // 假设 5 分钟超时，那么每隔 7.5 分钟清理一次
+                Math.round(timeout * 1.5),
+                TimeUnit.SECONDS, "verifycode"
+        ) {
+            private val codeTimeout = timeout * 1000L // 秒到毫秒
+            private val codeLength = length
+            private val counter = AtomicInteger(0)
+
+            // 延时开启清洁器线程
+            // 默认应用程序启动后不 start
+            // 当生成后并且超过指定阈值
+            // 那么开始清洁功能
+            private val threshold = Runtime.getRuntime().availableProcessors() * 10
+            private fun canStartWork() {
+                if (!isAtWorking && counter.incrementAndGet() > threshold) {
+                    YggdrasilLog.info("验证码缓存清洁器已开始工作...")
+                    YggdrasilLog.info("目前已缓存的验证码数量 : $size")
+                    start()
+                    counter.set(0)
+                    setOnRemoved { code ->
+                        YggdrasilLog.info("用户 '{}' 的验证码已过期并移除 : {}", code.first, code.second)
+                    }
+                } else if (isAtWorking && size * 2 < threshold) {
+                    YggdrasilLog.info("验证码缓存清洁器已暂时停止...")
+                    close()
+                }
+            }
+
+            // 生成验证码并加入缓存
+            fun generate(key: String): String {
+                canStartWork()
+                val code = Hex.generate(codeLength)
+                put(key, code, codeTimeout)
+                YggdrasilLog.info("给用户 '{}' 生成一个新的验证码 : {}", key, code)
+                return code
+            }
+
+            // 获取验证码，如果验证码已过期，那么会自动移除
+            override fun get(key: String): String? {
+                val cached = super.getCached(key)
+                if (cached != null && cached.isExpired) {
+                    YggdrasilLog.info("用户 '{}' 的验证码已过期并移除 : {}", key, cached.data)
+                    remove(key)
+                    return null
+                }
+                return cached?.data
+            }
+        }
+    }
+
     @Throws(ForbiddenOperationException::class)
-    suspend fun registerVerify(
+    suspend fun verify(
             email: String?,
             nickname: String?
     ): Map<String, Any?> {
+
         // 配置未开启注册功能, 返回 403 禁止操作
         if (!conf.userRegistrationEnable)
             throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
+
+        // 配置未开启验证码功能，返回 403 禁止操作
+        if (!conf.userVerifyCodeEnable)
+            throw ForbiddenOperationException(INVALID_VERIFY_CODE_NOT_ALLOWED)
+
         val email0 = checkIsValidEmail(email)
         val nickname0 = checkIsValidNickname(nickname)
-        // TODO Verify code
-        return mapOf()
+
+        // 先从缓存获取，如果过期重新生成
+        val verifyCode = verifyCodeCached[email0.full]
+                         ?: verifyCodeCached.generate(email0.full)
+
+        // TODO 发送邮件？还是？
+
+        return mapOf(
+                "email" to email0.full,
+                "nickname" to nickname0,
+                "verifyCode" to verifyCode
+        )
     }
 
     @Throws(ForbiddenOperationException::class)
@@ -79,17 +170,36 @@ object AuthController : Controller() {
             verifyCode: String?,
             permission: Permission = Permission.NORMAL
     ): Map<String, Any?> {
-        // TODO Verify code
+
         // 配置未开启注册功能, 返回 403 禁止操作
         if (!conf.userRegistrationEnable)
             throw ForbiddenOperationException(INVALID_REGISTER_NOT_ALLOWED)
-        YggdrasilLog.info(M_REGISTER_0, email, password)
+
+        YggdrasilLog.info(M_REGISTER_0, email, nickname, verifyCode)
+
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
         val nickname0 = checkIsValidNickname(nickname)
+
+        // 检验是否开启验证码功能
+        if (conf.userVerifyCodeEnable) {
+            if (verifyCode == null)
+                throw ForbiddenOperationException(INVALID_VERIFY_CODE)
+            if (!Hex.isMatches(verifyCode, allowBlank = false))
+                throw ForbiddenOperationException(INVALID_VERIFY_CODE_RULE)
+
+            // 用户提交的验证码和缓存的验证码不匹配，禁止注册
+            val code = verifyCodeCached[email0.full]
+            if (verifyCode != code) {
+                YggdrasilLog.info(M_REGISTER_3, verifyCode, code)
+                throw ForbiddenOperationException(INVALID_VERIFY_CODE_NOT_MATCH)
+            }
+        }
+
         val hashedPassword = passwordEncryption.computeHashed(password0)
         val existed = findUserByEmailOrNickname(email0, nickname0)
         if (existed != null)
             throw ForbiddenOperationException(INVALID_USER_REGISTERED)
+
         val user = transaction {
             val user = User.new {
                 this.email = email0
@@ -124,13 +234,17 @@ object AuthController : Controller() {
             clientToken: String?,
             requestUser: Boolean?
     ): Map<String, Any?> {
+
         YggdrasilLog.info(M_AUTHENTICATE_0, email, password, clientToken)
+
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
+
         val user = findUserByEmail(email0)?.checkIsNotBanned()
                 ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
         if (!passwordEncryption.compare(password0, user.password))
             throw ForbiddenOperationException(INVALID_CREDENTIALS_FAILED)
+
         val token = transaction {
             Tokens.deleteWhere { Tokens.user eq user.id }
             Token.new {
@@ -140,9 +254,11 @@ object AuthController : Controller() {
         }
         YggdrasilLog.info(M_AUTHENTICATE_1, token.id.value, email0.full)
         YggdrasilLog.info(M_AUTHENTICATE_2, email0.full)
+
         val lastLogged = transaction { DateTime.now().apply { Users.update({ Users.id eq user.id }) { it[lastLogged] = this@apply } } }
         val availableProfiles = transaction { Player.find { Players.user eq user.id }.toList() }
         val response = LinkedHashMap<String, Any>()
+
         response["accessToken"] = token.id.value
         response["clientToken"] = token.clientToken
         response["availableProfiles"] = availableProfiles.map { it.toProfile() }
@@ -169,18 +285,24 @@ object AuthController : Controller() {
             profileId: String?,
             profileName: String?
     ): Map<String, Any?> {
+
         YggdrasilLog.info(M_REFRESH_0, accessToken, clientToken)
+
         val accessToken0 = checkIsNonUnsignedUUID(accessToken, INVALID_K_ACCESS_TOKEN)
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
         val profileId0 = checkIsNonUnsignedUUIDOrNull(profileId, INVALID_K_PROFILE_ID)
+
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
                 ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
         if (clientToken0 != null && clientToken0 != token.clientToken)
             throw ForbiddenOperationException(INVALID_TOKEN_NOT_MATCH)
+
         val user = transaction { token.user }.checkIsNotBanned()
         val availableProfiles = transaction { Player.find { Players.user eq user.id }.toList() }
+
         if (profileId0 != null && availableProfiles.find { it.id.value == profileId0 && it.name == profileName } == null)
             throw ForbiddenOperationException(INVALID_PROFILE_NOT_EXISTED)
+
         val newToken = transaction {
             val shouldClientToken = clientToken0 ?: token.clientToken
             Tokens.deleteWhere { Tokens.id eq token.id }
@@ -189,8 +311,10 @@ object AuthController : Controller() {
                 this.user = user
             }
         }
+
         YggdrasilLog.info(M_REFRESH_1, token.id.value, user.email.full)
         YggdrasilLog.info(M_REFRESH_2, accessToken, newToken.id.value)
+
         val response = LinkedHashMap<String, Any>()
         response["accessToken"] = newToken.id.value
         response["clientToken"] = newToken.clientToken
@@ -214,13 +338,17 @@ object AuthController : Controller() {
             accessToken: String?,
             clientToken: String?
     ): Boolean {
+
         YggdrasilLog.info(M_VALIDATE_0, accessToken, clientToken)
+
         val accessToken0 = checkIsNonUnsignedUUID(accessToken, INVALID_K_ACCESS_TOKEN)
         val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
+
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
                 ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
         if (clientToken0 != null && clientToken0 != token.clientToken)
             throw ForbiddenOperationException(INVALID_TOKEN_NOT_MATCH)
+
         val invalid = token.isInvalid(conf.userTokenInvalidMillis)
         if (invalid) {
             YggdrasilLog.info(M_VALIDATE_1, accessToken)
@@ -235,11 +363,15 @@ object AuthController : Controller() {
             accessToken: String?,
             clientToken: String?
     ): Boolean {
+
         YggdrasilLog.info(M_INVALIDATE_0, accessToken, clientToken)
+
         val accessToken0 = checkIsNonUnsignedUUID(accessToken, INVALID_K_ACCESS_TOKEN)
 //        val clientToken0 = checkIsNonUnsignedUUIDOrNull(clientToken, INVALID_K_CLIENT_TOKEN)
+
         val token = transaction { Token.find { Tokens.id eq accessToken0 }.limit(1).firstOrNull() }
                 ?: throw ForbiddenOperationException(INVALID_TOKEN_NOT_EXISTED)
+
         transaction { Tokens.deleteWhere { Tokens.id eq token.id } }
         YggdrasilLog.info(M_INVALIDATE_1, accessToken)
         return true
@@ -250,12 +382,16 @@ object AuthController : Controller() {
             email: String?,
             password: String?
     ): Boolean {
-        YggdrasilLog.info(M_SIGNOUT_0, email, password)
+
+        YggdrasilLog.info(M_SIGNOUT_0, email)
+
         val (email0, password0) = checkIsValidEmailAndPassword(email, password)
+
         val user = findUserByEmail(email0)?.checkIsNotBanned()
                 ?: throw ForbiddenOperationException(INVALID_USER_NOT_EXISTED)
         if (!passwordEncryption.compare(password0, user.password))
             throw ForbiddenOperationException(INVALID_CREDENTIALS_FAILED)
+
         transaction { Tokens.deleteWhere { Tokens.user eq user.id } }
         YggdrasilLog.info(M_SIGNOUT_1, user.email.full)
         return true

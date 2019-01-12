@@ -36,11 +36,11 @@ import io.ktor.routing.post
  *   "username": "user email",
  *   "password": "user password",
  *   "nickname": "user nickname",
- *   "verifyCode": "预注册验证码", (可选)
+ *   "verifyCode": "注册验证码", (可选)
  * }
  * ```
  *
- * @see [RegisterVerify]
+ * @see [Verify]
  */
 object Register : RouterHandler {
 

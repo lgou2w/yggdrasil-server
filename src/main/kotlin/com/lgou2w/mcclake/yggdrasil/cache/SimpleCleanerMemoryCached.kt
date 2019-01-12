@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
-class SimpleCleanerMemoryCached<K, V>(
+open class SimpleCleanerMemoryCached<K, V>(
         val initialDelay: Long,
         val period: Long,
         val timeUnit: TimeUnit,
@@ -34,7 +34,10 @@ class SimpleCleanerMemoryCached<K, V>(
     private var cleaner : ScheduledExecutorService? = null
     private val lock = ReentrantLock()
 
-    fun start() {
+    var isAtWorking = false
+        private set
+
+    open fun start() {
         if (cleaner != null)
             cleaner?.shutdown()
         cleaner = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, threadName) }
@@ -44,6 +47,7 @@ class SimpleCleanerMemoryCached<K, V>(
                 period,
                 timeUnit
         )
+        isAtWorking = true
     }
 
     fun setOnRemoved(callback: Consumer<Pair<K, V>>?) {
@@ -69,6 +73,7 @@ class SimpleCleanerMemoryCached<K, V>(
     }
 
     override fun close() {
+        isAtWorking = false
         onRemoved = null
         cleaner?.shutdown()
         cleaner = null

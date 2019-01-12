@@ -28,8 +28,11 @@ open class SimpleMemoryCached<K, V> {
     fun isEmpty() = caches.isEmpty()
     fun isNotEmpty() = caches.isNotEmpty()
 
+    protected fun getCached(key: K): Cached<V>?
+            = caches[key]
+
     open operator fun get(key: K): V? {
-        val cached = caches[key] ?: return null
+        val cached = getCached(key) ?: return null
         return if (cached.isExpired) null else cached.data
     }
 

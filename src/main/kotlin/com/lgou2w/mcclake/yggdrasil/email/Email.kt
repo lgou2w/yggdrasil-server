@@ -40,7 +40,7 @@ object Emails {
 
     // TODO 自定义验证
 
-    val PATTERN = Pattern.compile("^(?<id>[A-Za-z0-9_\\-.]{3,})@(?<domain>([A-Za-z0-9_\\-.])+\\.([A-Za-z]{2,4}))$")
+    val PATTERN = Pattern.compile("^(?<id>[A-Za-z0-9_\\-.]{3,})@(?<domain>([A-Za-z0-9_\\-.]+)\\.([A-Za-z]{2,4}))$")
 
     @Throws(UnsupportedOperationException::class)
     fun parse(email: String?): Email {

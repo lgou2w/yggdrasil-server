@@ -17,6 +17,7 @@
 package com.lgou2w.mcclake.yggdrasil.util
 
 import java.util.*
+import java.util.regex.Pattern
 
 object Hex {
 
@@ -24,6 +25,13 @@ object Hex {
     private val RNG = Random()
     private val HEX_TABLE = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
     private val HEX_TABLE_BINARY = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+    private val PATTERN = Pattern.compile("^[0-9A-Fa-f]+$")
+
+    // 判断给定的字符串是否为十六进制字符串
+    fun isMatches(hexString: String, allowBlank: Boolean = false): Boolean {
+        return (hexString.isBlank() && allowBlank) ||
+               PATTERN.matcher(hexString).matches()
+    }
 
     fun generate(length: Int): String {
         val values = CharArray(length)

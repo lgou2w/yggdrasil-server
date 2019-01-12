@@ -221,10 +221,6 @@
             <resource>
                 <directory>src/main/resources/</directory>
                 <filtering>true</filtering>
-                <excludes>
-                    <!-- 最终打包不要包含测试环境的 logback 配置 -->
-                    <exclude>logback-test.xml</exclude>
-                </excludes>
             </resource>
         </resources>
     </build>

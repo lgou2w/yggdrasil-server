@@ -59,7 +59,7 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
 
     val messagerDefaultSmtp : String = config.getString("$ROOT.messager.default.smtp")
     val messagerDefaultPort : Int = config.getInt("$ROOT.messager.default.port")
-    val isMessagerDefaultSsl : Boolean = config.getBoolean("$ROOT.messager.default.ssl")
+    val messagerDefaultSsl : Boolean = config.getBoolean("$ROOT.messager.default.ssl")
     val messagerDefaultPwd : String = config.getString("$ROOT.messager.default.pwd")
     val messagerSendGridApiKey : String? = getStringOrNull("$ROOT.messager.sendGrid.apiKey")
 
@@ -68,6 +68,10 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
     val userRegistrationPasswordStrengthVerify : Pattern = getPattern("$ROOT.user.registration.passwordStrengthVerify")
     val userRegistrationNicknameVerify : Pattern = getPattern("$ROOT.user.registration.nicknameVerify")
     val userRegistrationNicknamePlayer : Boolean = config.getBoolean("$ROOT.user.registration.nicknamePlayer")
+
+    val userVerifyCodeEnable : Boolean = config.getBoolean("$ROOT.user.verifyCode.enable")
+    val userVerifyCodeTimeout : Long = config.getLong("$ROOT.user.verifyCode.timeout")
+    val userVerifyCodeLength : Int = config.getInt("$ROOT.user.verifyCode.length")
 
     val userTokenValid : Long = config.getLong("$ROOT.user.token.valid")
     val userTokenValidMillis = userTokenValid * 1000L

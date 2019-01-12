@@ -5,6 +5,24 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-GET localhost:9055/api
+POST localhost:9055/authserver/verify
+Content-Type: application/json
+
+{
+  "username": "lgou2w@hotmail.com",
+  "nickname": "lgou2w"
+}
+
+###
+
+POST localhost:9055/authserver/register
+Content-Type: application/json
+
+{
+  "username": "lgou2w@hotmail.com",
+  "password": "mcclake123",
+  "nickname": "admin",
+  "verifyCode": "a"
+}
 
 ###
