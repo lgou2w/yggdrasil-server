@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <ldk.version>0.1.7-rc3</ldk.version>
+        <ldk.version>0.1.7-rc4</ldk.version>
         <ktor.version>1.1.1</ktor.version>
         <kotlin.version>1.3.11</kotlin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
