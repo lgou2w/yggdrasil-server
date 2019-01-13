@@ -45,3 +45,4 @@ hs_err_pid*
 /yggdrasil.conf.old
 /yggdrasil-template*.conf
 /yggdrasil.db
+/textures

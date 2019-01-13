@@ -7,22 +7,22 @@ TODO
 
 # 功能特性
 
-* [服务器信息](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/Index.kt)
-* [登录服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver)
-    * [注册](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Register.kt) [WIP]
-    * [验证码](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Verify.kt) [WIP]
-    * [登录](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Authenticate.kt)
-    * [刷新](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Refresh.kt)
-    * [验证](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Validate.kt)
-    * [撤销](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Invalidate.kt)
-    * [登出](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/authserver/Signout.kt)
-* [会话服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver)
-    * [客户端加入](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/Join.kt) [WIP]
-    * [服务端加入](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/HasJoined.kt) [WIP]
-    * [档案查询](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/sessionserver/Profile.kt) [WIP]
-* [材质服务器](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures)
-    * [材质获取](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures/Obtain.kt) [WIP]
-    * [材质上传](/src/main/kotlin/com/lgou2w/mcclake/yggdrasil/router/textures/Upload.kt) [WIP]
+* [服务器信息](/src/main/kotlin/com/lgou2w/yggdrasil/router/Index.kt)
+* [登录服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver)
+    * [注册](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Register.kt)
+    * [验证码](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Verify.kt)
+    * [登录](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Authenticate.kt)
+    * [刷新](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Refresh.kt)
+    * [验证](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Validate.kt)
+    * [撤销](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Invalidate.kt)
+    * [登出](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Signout.kt)
+* [会话服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver)
+    * [客户端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Join.kt) [WIP]
+    * [服务端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/HasJoined.kt) [WIP]
+    * [档案查询](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Profile.kt) [WIP]
+* [材质服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures)
+    * [材质获取](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Obtain.kt) [WIP]
+    * [材质上传](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Upload.kt) [WIP]
 * 更多
     * TODO
 
