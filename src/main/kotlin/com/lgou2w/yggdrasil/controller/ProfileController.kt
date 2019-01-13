@@ -24,6 +24,7 @@ import com.lgou2w.yggdrasil.dao.Texture
 import com.lgou2w.yggdrasil.dao.TextureType
 import com.lgou2w.yggdrasil.dao.Textures
 import com.lgou2w.yggdrasil.error.ForbiddenOperationException
+import io.ktor.http.RequestConnectionPoint
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
@@ -35,7 +36,12 @@ object ProfileController : Controller() {
 
     const val M_LOOKUP = "尝试获取角色档案 : uuid = {}, unsigned = {}"
 
-    private fun texturesBase64(profile: Player, textures: List<Texture>, unsigned: Boolean): String {
+    private fun texturesBase64(
+            point: RequestConnectionPoint,
+            profile: Player,
+            textures: List<Texture>,
+            unsigned: Boolean
+    ): String {
         val texturesResponse = LinkedHashMap<String, Any?>()
         texturesResponse["timestamp"] = System.currentTimeMillis() / 1000L
         texturesResponse["profileId"] = profile.id.value
@@ -45,7 +51,9 @@ object ProfileController : Controller() {
         val texturesData =  LinkedHashMap<String, Any?>(textures.size)
         textures.forEach { texture ->
             texturesData[texture.type.name] = mapOf(
-                    "url" to texture.url,
+                    "url" to manager.texturesManager.wrapUrl(texture.url,
+                            point.scheme, point.host, point.port // 包装材质 URL
+                    ),
                     "metadata" to if (texture.type == TextureType.SKIN && profile.model == ModelType.ALEX)
                         mapOf("model" to "slim") else null
             )
@@ -61,9 +69,14 @@ object ProfileController : Controller() {
         return ""
     }
 
-    private fun texturesProperty(profile: Player, textures: List<Texture>, unsigned: Boolean): List<Map<String, Any?>> {
+    private fun texturesProperty(
+            point: RequestConnectionPoint,
+            profile: Player,
+            textures: List<Texture>,
+            unsigned: Boolean
+    ): List<Map<String, Any?>> {
         if (textures.isEmpty()) return emptyList()
-        val texturesBase64 = texturesBase64(profile, textures, unsigned)
+        val texturesBase64 = texturesBase64(point, profile, textures, unsigned)
         val property = LinkedHashMap<String, Any?>()
         property["name"] = "textures"
         property["value"] = texturesBase64
@@ -74,6 +87,7 @@ object ProfileController : Controller() {
 
     @Throws(ForbiddenOperationException::class)
     suspend fun lookupProfile(
+            point: RequestConnectionPoint,
             uuid: String?,
             unsigned: Boolean?
     ): Map<String, Any?> {
@@ -92,7 +106,7 @@ object ProfileController : Controller() {
         return mapOf(
                 "id" to profile.id.value,
                 "name" to profile.name,
-                "properties" to texturesProperty(
+                "properties" to texturesProperty(point,
                         profile,
                         textures,
                         unsigned.orTrue()

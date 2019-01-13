@@ -42,6 +42,21 @@ class TexturesManager(private val conf: YggdrasilConf) {
         return File(dir, hash)
     }
 
+    // 包装材质的 URL 链接
+    // 如果材质 URL 是远程链接，那么直接返回
+    // 否则材质是相对，那么返回材质请求的链接点 + 材质路径
+    fun wrapUrl(url: String, scheme: String, host: String, port: Int): String {
+        if (url.startsWith("http"))
+            return url
+        return buildString {
+            append(scheme).append("://")
+            append(host)
+            if (port != 80 || port != 443) // 如果端口不为 80 或 443 端口那么追加
+                append(':').append(port)
+            append(url) // 追加材质链接
+        }
+    }
+
     // 获取当前材质目录内存在的材质数量
     val files : Int get() = dir.list { _, name -> name.length == 64 }.size
 

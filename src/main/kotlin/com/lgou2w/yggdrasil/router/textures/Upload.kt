@@ -45,7 +45,7 @@ object Upload : RouterHandler {
         routing.accept(ContentType.MultiPart.FormData) {
             put(path) {
 
-                // TODO 令牌验证
+                // TODO 令牌验证、图片验证、支持披风和鞘翅、等等
 
                 try {
                     val multipart = call.receiveMultipart()

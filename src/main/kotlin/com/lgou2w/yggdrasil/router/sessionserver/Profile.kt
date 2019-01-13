@@ -46,7 +46,7 @@ object Profile : RouterHandler {
             val uuid = call.parameters["uuid"]
             val unsigned = call.request.queryParameters["unsigned"]?.toBoolean()
             try {
-                val response = ProfileController.lookupProfile(uuid, unsigned)
+                val response = ProfileController.lookupProfile(call.request.local, uuid, unsigned)
                 call.respond(response)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.NoContent) // 总是 204, 当操作失败或用户未存在
