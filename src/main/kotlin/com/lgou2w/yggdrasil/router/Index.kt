@@ -35,8 +35,8 @@ object Index : RouterHandler {
                             "implementationName" to "mcclake-yggdrasil-server",
                             "implementationVersion" to Yggdrasil.VERSION.version
                     ),
-                    "skinDomains" to emptyArray<String>(),
-                    "signaturePublickey" to "NONE"
+                    "skinDomains" to arrayOf("localhost", "127.0.0.1", "localhost:9055", "127.0.0.1:9055"),
+                    "signaturePublickey" to yggdrasilService.manager.texturesManager.externalPublicKey
             ))
         }
     }

@@ -80,6 +80,9 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
     val userTokenInvalid : Long = config.getLong("$ROOT.user.token.invalid")
     val userTokenInvalidMillis = userTokenInvalid * 1000L
 
+    val userTexturesPublicKey : String = config.getString("$ROOT.user.textures.publicKey")
+    val userTexturesPrivateKey : String = config.getString("$ROOT.user.textures.privateKey")
+
     fun getStringOrNull(path: String): String?
             = if (config.hasPath(path)) config.getString(path) else null
 
@@ -101,6 +104,7 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
                 "yggdrasil-license.txt",
                 "yggdrasil.cmd",
                 "yggdrasil.sh",
+                "yggdrasil-genkey.sh",
                 Templates.T_REGISTER
         )
 

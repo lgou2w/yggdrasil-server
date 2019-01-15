@@ -41,8 +41,12 @@ hs_err_pid*
 /yggdrasil-license.txt
 /yggdrasil.cmd
 /yggdrasil.sh
+/yggdrasil-genkey.sh
 /yggdrasil.conf
 /yggdrasil.conf.old
 /yggdrasil-template*.conf
 /yggdrasil.db
 /textures
+/private-*key.*
+/public-*key.*
+/yggdrasil-*key.*

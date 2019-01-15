@@ -25,6 +25,7 @@ import com.lgou2w.yggdrasil.dao.TextureType
 import com.lgou2w.yggdrasil.dao.Textures
 import com.lgou2w.yggdrasil.error.ForbiddenOperationException
 import io.ktor.http.RequestConnectionPoint
+import java.io.IOException
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
@@ -36,7 +37,7 @@ object ProfileController : Controller() {
 
     const val M_LOOKUP = "尝试获取角色档案 : uuid = {}, unsigned = {}"
 
-    private fun texturesBase64(
+    private fun texturesValue(
             point: RequestConnectionPoint,
             profile: Player,
             textures: List<Texture>,
@@ -64,11 +65,6 @@ object ProfileController : Controller() {
         return Base64.getEncoder().encodeToString(values)
     }
 
-    private fun texturesSignature(texturesBase64: String): String {
-        // TODO 材质签名
-        return ""
-    }
-
     private fun texturesProperty(
             point: RequestConnectionPoint,
             profile: Player,
@@ -76,16 +72,16 @@ object ProfileController : Controller() {
             unsigned: Boolean
     ): List<Map<String, Any?>> {
         if (textures.isEmpty()) return emptyList()
-        val texturesBase64 = texturesBase64(point, profile, textures, unsigned)
+        val texturesValue= texturesValue(point, profile, textures, unsigned)
         val property = LinkedHashMap<String, Any?>()
         property["name"] = "textures"
-        property["value"] = texturesBase64
+        property["value"] = texturesValue
         if (!unsigned)
-            property["signature"] = texturesSignature(texturesBase64)
+            property["signature"] = manager.texturesManager.signature(texturesValue)
         return Collections.singletonList(property)
     }
 
-    @Throws(ForbiddenOperationException::class)
+    @Throws(ForbiddenOperationException::class, IOException::class)
     suspend fun lookupProfile(
             point: RequestConnectionPoint,
             uuid: String?,

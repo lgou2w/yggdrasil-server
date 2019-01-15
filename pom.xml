@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.lgou2w</groupId>
     <artifactId>yggdrasil-server</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.6</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -57,6 +57,13 @@
         <dependency>
             <groupId>com.github.lgou2w.ldk</groupId>
             <artifactId>ldk-sql-sqlite</artifactId>
+            <version>${ldk.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- ldk-rsa -->
+        <dependency>
+            <groupId>com.github.lgou2w.ldk</groupId>
+            <artifactId>ldk-rsa</artifactId>
             <version>${ldk.version}</version>
             <scope>compile</scope>
         </dependency>
