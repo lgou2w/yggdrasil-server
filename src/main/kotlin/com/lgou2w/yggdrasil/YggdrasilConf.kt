@@ -80,8 +80,10 @@ class YggdrasilConf private constructor(val config: Config, val workDir: File, v
     val userTokenInvalid : Long = config.getLong("$ROOT.user.token.invalid")
     val userTokenInvalidMillis = userTokenInvalid * 1000L
 
+    val userTexturesDomains : List<String> = config.getStringList("$ROOT.user.textures.domains")
     val userTexturesPublicKey : String = config.getString("$ROOT.user.textures.publicKey")
     val userTexturesPrivateKey : String = config.getString("$ROOT.user.textures.privateKey")
+    val userTexturesMaxFileSize : Long = config.getLong("$ROOT.user.textures.maxFileSize")
 
     fun getStringOrNull(path: String): String?
             = if (config.hasPath(path)) config.getString(path) else null

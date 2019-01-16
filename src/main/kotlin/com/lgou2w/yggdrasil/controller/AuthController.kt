@@ -66,6 +66,7 @@ object AuthController : Controller() {
     const val M_REFRESH_2 = "访问令牌已刷新 '{}' => '{}'"
     const val M_VALIDATE_0 = "用户尝试 Validate 使用 : 访问令牌 = {}, 客户端令牌 = {}"
     const val M_VALIDATE_1 = "访问令牌 '{}' 已过期"
+    const val M_VALIDATE_2 = "用户验证成功, 令牌过期时间为 : {}"
     const val M_INVALIDATE_0 = "用户尝试 Invalidate 使用 : 访问令牌 = {}, 客户端令牌 = {}"
     const val M_INVALIDATE_1 = "访问令牌 '{}' 已成功删除"
     const val M_SIGNOUT_0 = "用户尝试 Signout 使用 : 邮箱 = {}"
@@ -369,7 +370,7 @@ object AuthController : Controller() {
     suspend fun validate(
             accessToken: String?,
             clientToken: String?
-    ): Boolean {
+    ): Token {
 
         YggdrasilLog.info(M_VALIDATE_0, accessToken, clientToken)
 
@@ -381,20 +382,23 @@ object AuthController : Controller() {
         if (clientToken0 != null && clientToken0 != token.clientToken)
             throw ForbiddenOperationException(INVALID_TOKEN_NOT_MATCH)
 
-        val invalid = token.isInvalid(conf.userTokenInvalidMillis)
-        if (invalid) {
+        // 令牌已经超过最大有效期，删除令牌并返回 403 禁止操作异常
+        if (token.isInvalid(conf.userTokenInvalidMillis)) {
             YggdrasilLog.info(M_VALIDATE_1, accessToken)
             transaction { Tokens.deleteWhere { Tokens.id eq token.id } }
             throw ForbiddenOperationException(INVALID_TOKEN_EXPIRED)
         }
-        return !invalid
+
+        val timeout = token.createdAt.plus(conf.userTokenInvalidMillis)
+        YggdrasilLog.info(M_VALIDATE_2, timeout.toString("yyyy/MM/dd HH:mm:ss"))
+        return token
     }
 
     @Throws(ForbiddenOperationException::class)
     suspend fun invalidate(
             accessToken: String?,
             clientToken: String?
-    ): Boolean {
+    ) {
 
         YggdrasilLog.info(M_INVALIDATE_0, accessToken, clientToken)
 
@@ -406,14 +410,13 @@ object AuthController : Controller() {
 
         transaction { Tokens.deleteWhere { Tokens.id eq token.id } }
         YggdrasilLog.info(M_INVALIDATE_1, accessToken)
-        return true
     }
 
     @Throws(ForbiddenOperationException::class)
     suspend fun signout(
             email: String?,
             password: String?
-    ): Boolean {
+    ) {
 
         YggdrasilLog.info(M_SIGNOUT_0, email)
 
@@ -426,6 +429,5 @@ object AuthController : Controller() {
 
         transaction { Tokens.deleteWhere { Tokens.user eq user.id } }
         YggdrasilLog.info(M_SIGNOUT_1, user.email.value)
-        return true
     }
 }

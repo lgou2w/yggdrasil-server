@@ -16,7 +16,6 @@
 
 package com.lgou2w.yggdrasil.dao
 
-import com.lgou2w.ldk.common.Valuable
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
@@ -24,7 +23,7 @@ import java.util.*
 
 object Players : Dao.UnsignedUUIDTable("yggdrasil_players", "uuid") {
     var name = varchar("name", 16).uniqueIndex()
-    var model = enumeration("model", ModelType::class).default(ModelType.STEVE)
+    var model = enumerationByName("model", 16, ModelType::class).default(ModelType.STEVE)
     var user = reference("user", Users)
 }
 
@@ -40,11 +39,8 @@ class Player(
             = mapOf("id" to id.value, "name" to name)
 }
 
-enum class ModelType(
-        override val value: String,
-        val model: String
-) : Valuable<String> {
-    STEVE("Steve", "default"),
-    ALEX("Alex", "slim"),
+enum class ModelType {
+    STEVE,
+    ALEX,
     ;
 }

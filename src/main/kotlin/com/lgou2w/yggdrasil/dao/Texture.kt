@@ -24,7 +24,6 @@ import org.jetbrains.exposed.dao.IntIdTable
 object Textures : IntIdTable("yggdrasil_textures", "id") {
     var type = enumerationByName("type", 16, TextureType::class)
     var url = text("url")
-    var hash = varchar("hash", 64).nullable()
     var player = reference("player", Players)
 }
 
@@ -34,13 +33,11 @@ class Texture(
     companion object : IntEntityClass<Texture>(Textures)
     var type by Textures.type
     var url by Textures.url
-    var hash by Textures.hash
     var player by Player referencedOn Textures.player
 }
 
 enum class TextureType {
     SKIN,
     CAPE,
-    ELYTRA,
     ;
 }

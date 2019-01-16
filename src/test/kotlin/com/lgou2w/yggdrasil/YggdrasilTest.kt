@@ -18,6 +18,9 @@ package com.lgou2w.yggdrasil
 
 import com.lgou2w.yggdrasil.email.Templates
 import com.typesafe.config.ConfigFactory
+import org.joda.time.DateTime
+import org.joda.time.Period
+import org.joda.time.PeriodType
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test

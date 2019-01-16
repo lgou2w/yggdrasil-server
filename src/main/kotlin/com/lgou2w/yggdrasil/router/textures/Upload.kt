@@ -16,25 +16,38 @@
 
 package com.lgou2w.yggdrasil.router.textures
 
-import com.lgou2w.yggdrasil.YggdrasilLog
-import com.lgou2w.yggdrasil.error.ForbiddenOperationException
+import com.lgou2w.ldk.common.isTrue
+import com.lgou2w.yggdrasil.controller.AuthController
+import com.lgou2w.yggdrasil.controller.ProfileController
+import com.lgou2w.yggdrasil.error.UnauthorizedException
 import com.lgou2w.yggdrasil.router.RouterHandler
-import com.lgou2w.yggdrasil.util.Hash
 import io.ktor.application.call
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
-import io.ktor.http.content.streamProvider
+import io.ktor.request.header
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.accept
 import io.ktor.routing.put
-import java.io.BufferedInputStream
 
 /**
  * ## 上传皮肤纹理时的 PUT 请求
+ *
+ * 请求:
+ * ```header
+ * Authorization: Bearer <AccessToken>
+ * ```
+ * ```multiPart
+ * FormItem = UUID
+ * FormItem = ModelType
+ * FormItem = TextureType
+ * FileItem = TextureFile
+ * ```
+ *
+ * 响应: 200 如果成功
  */
 object Upload : RouterHandler {
 
@@ -44,50 +57,39 @@ object Upload : RouterHandler {
     override fun install(routing: Routing) {
         routing.accept(ContentType.MultiPart.FormData) {
             put(path) {
+                val bearerToken = call.request.header(HttpHeaders.Authorization)?.split(" ")
+                val accessToken = bearerToken?.getOrNull(1)
+                if (bearerToken?.getOrNull(0) != "Bearer" || accessToken?.isBlank().isTrue())
+                    throw UnauthorizedException()
 
-                // TODO 令牌验证、图片验证、支持披风和鞘翅、等等
+                // 验证访问令牌是否有效，否则抛出异常
+                // 其实并不需要做 if 判断，因为内部如果失效直接抛出异常了
+                val token = AuthController.validate(accessToken, null)
+
+                val multiPart = call.receiveMultipart()
+                val uuid = multiPart.readPart() as? PartData.FormItem
+                val model = multiPart.readPart() as? PartData.FormItem
+                val texture = multiPart.readPart() as? PartData.FormItem
+                val textureFile = multiPart.readPart() as? PartData.FileItem
 
                 try {
-                    val multipart = call.receiveMultipart()
-                    val parts = multipart.readAllParts()
-                    val partModel = parts.getOrNull(0) as? PartData.FormItem
-                    val partFile = parts.getOrNull(1) as? PartData.FileItem
-
-                    if (partModel == null || partFile == null)
-                        throw ForbiddenOperationException("无效的表单数据.")
-
-                    try {
-
-                        val input = partFile.streamProvider()
-                        val bufferedInput = BufferedInputStream(input)
-                        bufferedInput.mark(0)
-
-                        val hash = Hash.computeTexture(bufferedInput)
-                        val outFile = yggdrasilService.manager.texturesManager.file(hash)
-
-                        YggdrasilLog.info("计算材质的哈希值为 : $hash")
-
-                        bufferedInput.reset()
-                        bufferedInput.use { its ->
-                            outFile.outputStream().buffered().use { ots ->
-                                its.copyTo(ots)
-                            }
-                        }
-
-                        bufferedInput.close()
-                        call.respond(HttpStatusCode.OK)
-
-                    } catch (e: Exception) {
-                        throw e
-                    } finally {
-                        // 释放
-                        partModel.dispose()
-                        partFile.dispose()
-                    }
-
+                    ProfileController.uploadTexture(
+                            token,
+                            uuid,
+                            model,
+                            texture,
+                            textureFile
+                    )
+                    call.respond(HttpStatusCode.OK) // 操作成功，返回 HTTP 200 OK
                 } catch (e: Exception) {
-                    YggdrasilLog.error("处理上传文件时错误:", e)
-                    call.respond(HttpStatusCode.InternalServerError)
+                    // 直接抛出异常，不用管
+                    throw e
+                } finally {
+                    // 最后释放这些多部分数据
+                    uuid?.dispose?.invoke()
+                    model?.dispose?.invoke()
+                    texture?.dispose?.invoke()
+                    textureFile?.dispose?.invoke()
                 }
             }
         }

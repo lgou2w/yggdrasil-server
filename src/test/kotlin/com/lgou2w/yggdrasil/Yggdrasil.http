@@ -30,3 +30,8 @@ Content-Type: application/json
 GET localhost:9055/sessionserver/session/minecraft/profile/5b551f0a1e8043ea9506bcea56e75ac2
 
 ###
+
+PUT localhost:9055/textures/upload
+Authorization: Bearer mytoken
+
+###

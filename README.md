@@ -19,10 +19,10 @@ TODO
 * [会话服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver)
     * [客户端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Join.kt) [WIP]
     * [服务端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/HasJoined.kt) [WIP]
-    * [档案查询](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Profile.kt) [WIP]
+    * [档案查询](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Profile.kt)
 * [材质服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures)
-    * [材质获取](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Obtain.kt) [WIP]
-    * [材质上传](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Upload.kt) [WIP]
+    * [材质获取](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Obtain.kt)
+    * [材质上传](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Upload.kt)
 * 更多
     * TODO
 
@@ -57,12 +57,12 @@ src/...
 │   │   ├── Signout.kt                            POST 用户登出
 │   │   ├── Validate.kt                           POST 验证令牌
 │   ├── sessionserver                           会话服务器路由器（玩家加入服务器、服务器验证、玩家档案获取
-│   │   ├── HasJoined.kt                          GET 服务端验证客户端 (WIP)
-│   │   ├── Join.kt                               POST 客户端验证服务端 (WIP)
-│   │   ├── Profile.kt                            GET 查询玩家档案 (WIP)
+│   │   ├── HasJoined.kt                          GET 服务端验证客户端
+│   │   ├── Join.kt                               POST 客户端验证服务端
+│   │   ├── Profile.kt                            GET 查询玩家档案
 │   ├── textures                                材质路由器（材质的获取、材质的上传、删除
-│   │   ├── Obtain.kt                             GET 获取指定材质 (WIP)
-│   │   ├── Upload.kt                             POST 上传指定材质 (WIP)
+│   │   ├── Obtain.kt                             GET 获取指定材质 
+│   │   ├── Upload.kt                             PUT 上传指定材质
 │   ├── Index.kt                                根路由器（返回规范 json 数据
 │   ├── Routers.kt                              路由器操作类（已注册路由器等等
 ├── security                                  安全性

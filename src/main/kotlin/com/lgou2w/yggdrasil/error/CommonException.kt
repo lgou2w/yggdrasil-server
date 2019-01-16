@@ -16,5 +16,6 @@
 
 package com.lgou2w.yggdrasil.error
 
+class UnauthorizedException : RuntimeException("401 Unauthorized")
 class NotFoundException : RuntimeException("404 Not Found")
 class InternalServerException : RuntimeException("500 Internal Server Error")

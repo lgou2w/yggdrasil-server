@@ -19,6 +19,7 @@ package com.lgou2w.yggdrasil.manager
 import com.lgou2w.ldk.rsa.RSAUtils
 import com.lgou2w.yggdrasil.YggdrasilConf
 import com.lgou2w.yggdrasil.YggdrasilLog
+import com.lgou2w.yggdrasil.dao.Texture
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -32,10 +33,11 @@ class TexturesManager(private val conf: YggdrasilConf) {
 
     companion object {
         const val LENGTH = 64
+        const val DIR = "textures"
         const val SIGNATURE = "SHA1WithRSA"
     }
 
-    private val dir = File(conf.workDir, "textures")
+    private val dir = File(conf.workDir, DIR)
     private lateinit var privateKey : PrivateKey
     private lateinit var publicKey : PublicKey
     private lateinit var publicKeyStr : String
@@ -94,16 +96,21 @@ class TexturesManager(private val conf: YggdrasilConf) {
     // 包装材质的 URL 链接
     // 如果材质 URL 是远程链接，那么直接返回
     // 否则材质是相对，那么返回材质请求的链接点 + 材质路径
-    fun wrapUrl(url: String, scheme: String, host: String, port: Int): String {
-        if (url.startsWith("http"))
+    fun wrapUrl(texture: Texture, scheme: String, host: String, port: Int): String {
+        val url = texture.url
+        if (url.startsWith("http")) // 外部材质链接，直接返回
             return url
-        return buildString {
+        return buildString { // 本地材质链接，包装
             append(scheme).append("://")
             append(host)
             if (port != 80 || port != 443) // 如果端口不为 80 或 443 端口那么追加
                 append(':').append(port)
-            append(url) // 追加材质链接
+            append('/')
+            append(DIR)
+            append('/')
+            append(url) // 追加材质 Hash
         }
+        // 本地包装后：http|https://your.domain:port/textures/hash
     }
 
     // 用于外部客户端进行材质签名的 PEM 格式公钥

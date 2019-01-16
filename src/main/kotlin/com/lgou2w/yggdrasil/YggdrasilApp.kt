@@ -19,6 +19,7 @@ package com.lgou2w.yggdrasil
 import com.lgou2w.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.yggdrasil.error.InternalServerException
 import com.lgou2w.yggdrasil.error.NotFoundException
+import com.lgou2w.yggdrasil.error.UnauthorizedException
 import com.lgou2w.yggdrasil.router.Routers
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -45,6 +46,7 @@ fun Application.yggdrasilApp(manager: YggdrasilManager) {
     }
     install(StatusPages) {
         exception<ForbiddenOperationException> { error -> call.respond(HttpStatusCode.Forbidden, error.response()) }
+        exception<UnauthorizedException> { call.respond(HttpStatusCode.Unauthorized) }
         exception<NotFoundException> { call.respond(HttpStatusCode.NotFound) }
         exception<NotImplementedError> { call.respond(HttpStatusCode.NotImplemented) }
         exception<InternalServerException> { call.respond(HttpStatusCode.InternalServerError) }
