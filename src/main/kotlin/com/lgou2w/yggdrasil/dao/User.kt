@@ -36,7 +36,6 @@ object Users : Dao.UnsignedUUIDTable("yggdrasil_users", "uuid") {
             Dao.HashedPasswordColumnType(DefaultYggdrasilService.passwordEncryption))
     var nickname = varchar("nickname", 64).uniqueIndex()
     var createdAt = datetime("createdAt").clientDefault { DateTime.now() }
-    var lastLogged = datetime("lastLogged").clientDefault { DateTime.now() }
     var permission = registerColumn<Permission>("permission", Dao.PermissionColumnType())
         .default(Permission.NORMAL)
 }
@@ -49,7 +48,6 @@ class User(
     var password by Users.password
     var nickname by Users.nickname
     var createdAt by Users.createdAt
-    var lastLogged by Users.lastLogged
     var permission by Users.permission
 
     val isBanned : Boolean

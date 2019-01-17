@@ -26,8 +26,6 @@ import com.lgou2w.yggdrasil.error.InternalServerException
 import com.lgou2w.yggdrasil.util.Hex
 import com.lgou2w.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.update
-import org.joda.time.DateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -255,7 +253,6 @@ object AuthController : Controller() {
                 "email" to user.email,
                 "nickname" to user.nickname,
                 "createdAt" to user.createdAt,
-                "lastLogged" to user.lastLogged,
                 "permission" to user.permission
         )
     }
@@ -288,7 +285,6 @@ object AuthController : Controller() {
         YggdrasilLog.info(M_AUTHENTICATE_1, token.id.value, email0.value)
         YggdrasilLog.info(M_AUTHENTICATE_2, email0.value)
 
-        val lastLogged = transaction { DateTime.now().apply { Users.update({ Users.id eq user.id }) { it[lastLogged] = this@apply } } }
         val availableProfiles = transaction { Player.find { Players.user eq user.id }.toList() }
         val response = LinkedHashMap<String, Any>()
 
@@ -302,7 +298,6 @@ object AuthController : Controller() {
                     "id" to user.id.value,
                     "properties" to arrayOf(
                             mapOf("name" to "createdAt", "value" to user.createdAt),
-                            mapOf("name" to "lastLogged", "value" to lastLogged),
                             mapOf("name" to "permission", "value" to user.permission)
                     )
             )
@@ -358,7 +353,6 @@ object AuthController : Controller() {
                     "id" to user.id.value,
                     "properties" to mapOf(
                             "createdAt" to user.createdAt,
-                            "lastLogged" to user.lastLogged,
                             "permission" to user.permission
                     )
             )
