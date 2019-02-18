@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.lgou2w.ldk.sql.buildConfiguration
 import com.lgou2w.yggdrasil.YggdrasilConf
 import com.lgou2w.yggdrasil.YggdrasilLog
 import org.jetbrains.exposed.sql.Database
-import java.util.*
+import java.util.Collections
 
 class StorageMySQL : Storage() {
 

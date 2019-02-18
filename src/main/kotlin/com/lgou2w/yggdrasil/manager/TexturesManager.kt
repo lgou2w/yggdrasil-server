@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.io.RandomAccessFile
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.Signature
-import java.util.*
+import java.util.Base64
 import kotlin.system.exitProcess
 
 class TexturesManager(private val conf: YggdrasilConf) {

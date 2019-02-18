@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,20 @@ package com.lgou2w.yggdrasil.router
 import com.lgou2w.yggdrasil.DefaultYggdrasilService
 import com.lgou2w.yggdrasil.YggdrasilLog
 import com.lgou2w.yggdrasil.YggdrasilService
-import com.lgou2w.yggdrasil.router.authserver.*
+import com.lgou2w.yggdrasil.router.authserver.Authenticate
+import com.lgou2w.yggdrasil.router.authserver.Invalidate
+import com.lgou2w.yggdrasil.router.authserver.Refresh
+import com.lgou2w.yggdrasil.router.authserver.Register
+import com.lgou2w.yggdrasil.router.authserver.Signout
+import com.lgou2w.yggdrasil.router.authserver.Validate
+import com.lgou2w.yggdrasil.router.authserver.Verify
 import com.lgou2w.yggdrasil.router.sessionserver.HasJoined
 import com.lgou2w.yggdrasil.router.sessionserver.Join
 import com.lgou2w.yggdrasil.router.sessionserver.Profile
 import com.lgou2w.yggdrasil.router.textures.Obtain
 import com.lgou2w.yggdrasil.router.textures.Upload
 import io.ktor.routing.Routing
-import java.util.*
+import java.util.Collections
 
 interface RegisteredRouter {
     val path : String

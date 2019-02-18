@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,6 @@ package com.lgou2w.yggdrasil
 
 import com.lgou2w.yggdrasil.email.Templates
 import com.typesafe.config.ConfigFactory
-import org.joda.time.DateTime
-import org.joda.time.Period
-import org.joda.time.PeriodType
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test

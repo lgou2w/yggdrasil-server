@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,15 @@ import com.lgou2w.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IdTable
-import org.jetbrains.exposed.sql.*
-import java.util.*
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ColumnType
+import org.jetbrains.exposed.sql.IntegerColumnType
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.TextColumnType
+import org.jetbrains.exposed.sql.VarCharColumnType
+import java.util.Collections
+import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.system.exitProcess
 

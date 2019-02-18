@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The lgou2w (lgou2w@hotmail.com)
+ * Copyright (C) 2019 The lgou2w <lgou2w@hotmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,19 @@ package com.lgou2w.yggdrasil.controller
 import com.lgou2w.ldk.common.orFalse
 import com.lgou2w.yggdrasil.YggdrasilLog
 import com.lgou2w.yggdrasil.cache.SimpleCleanerMemoryCached
-import com.lgou2w.yggdrasil.dao.*
+import com.lgou2w.yggdrasil.dao.Permission
+import com.lgou2w.yggdrasil.dao.Player
+import com.lgou2w.yggdrasil.dao.Players
+import com.lgou2w.yggdrasil.dao.Token
+import com.lgou2w.yggdrasil.dao.Tokens
+import com.lgou2w.yggdrasil.dao.User
 import com.lgou2w.yggdrasil.email.Templates
 import com.lgou2w.yggdrasil.error.ForbiddenOperationException
 import com.lgou2w.yggdrasil.error.InternalServerException
 import com.lgou2w.yggdrasil.util.Hex
 import com.lgou2w.yggdrasil.util.UUIDSerializer
 import org.jetbrains.exposed.sql.deleteWhere
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
