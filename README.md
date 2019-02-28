@@ -17,8 +17,8 @@ TODO
     * [撤销](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Invalidate.kt)
     * [登出](/src/main/kotlin/com/lgou2w/yggdrasil/router/authserver/Signout.kt)
 * [会话服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver)
-    * [客户端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Join.kt) [WIP]
-    * [服务端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/HasJoined.kt) [WIP]
+    * [客户端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Join.kt)
+    * [服务端加入](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/HasJoined.kt)
     * [档案查询](/src/main/kotlin/com/lgou2w/yggdrasil/router/sessionserver/Profile.kt)
 * [材质服务器](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures)
     * [材质获取](/src/main/kotlin/com/lgou2w/yggdrasil/router/textures/Obtain.kt)

@@ -16,8 +16,15 @@
 
 package com.lgou2w.yggdrasil.router.sessionserver
 
+import com.lgou2w.yggdrasil.controller.SessionController
 import com.lgou2w.yggdrasil.router.RouterHandler
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.request.receive
+import io.ktor.response.respond
 import io.ktor.routing.Routing
+import io.ktor.routing.accept
 import io.ktor.routing.post
 
 /**
@@ -42,8 +49,24 @@ object Join : RouterHandler {
     override val path = "/sessionserver/session/minecraft/join"
 
     override fun install(routing: Routing) {
-        routing.post(path) {
-            TODO()
+        routing.accept(ContentType.Application.Json) {
+            routing.post(path) {
+                val userIp = call.request.local.remoteHost
+                val request : Request? = call.receive()
+                SessionController.joinServer(
+                        request?.accessToken,
+                        request?.selectedProfile,
+                        request?.serverId,
+                        userIp
+                )
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
+
+    private data class Request(
+            val accessToken: String?,
+            val selectedProfile: String?,
+            val serverId: String?
+    )
 }

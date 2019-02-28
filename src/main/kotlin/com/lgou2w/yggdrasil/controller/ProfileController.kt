@@ -84,7 +84,7 @@ object ProfileController : Controller() {
         return Base64.getEncoder().encodeToString(values)
     }
 
-    private fun texturesProperty(
+    fun texturesProperty(
             point: RequestConnectionPoint,
             profile: Player,
             textures: List<Texture>,

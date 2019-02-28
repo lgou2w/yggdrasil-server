@@ -16,7 +16,11 @@
 
 package com.lgou2w.yggdrasil.router.sessionserver
 
+import com.lgou2w.yggdrasil.controller.SessionController
 import com.lgou2w.yggdrasil.router.RouterHandler
+import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 
@@ -41,7 +45,20 @@ object HasJoined : RouterHandler {
 
     override fun install(routing: Routing) {
         routing.get(path) {
-            TODO()
+            val username = call.request.queryParameters["username"]
+            val serverId = call.request.queryParameters["serverId"]
+            val userIp = call.request.queryParameters["ip"]
+            try {
+                val response = SessionController.hasJoinedServer(
+                        call.request.local,
+                        username,
+                        serverId,
+                        userIp
+                )
+                call.respond(response)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.NoContent) // 总是 204, 当操作失败
+            }
         }
     }
 }
