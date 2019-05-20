@@ -1,3 +1,5 @@
+> 已迁移到 https://github.com/lgou2w/l2yggdrasil-server
+
 # Yggdrasil Server
 A ktor-based minecraft yggdrasil account server
 
